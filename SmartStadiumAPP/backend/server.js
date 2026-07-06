@@ -18,6 +18,29 @@ try {
   console.warn("GoogleGenAI initialized without API key, make sure it is added to .env");
 }
 
+// Simulation Data
+const snapshots = [
+  { time: '6:00 PM', densities: { 'gate-a': 20, 'gate-b': 25, 'gate-c': 15, 'gate-d': 20, 'sec-100': 10, 'sec-200': 15, 'sec-300': 10, 'sec-400': 12, 'rr-1': 5, 'rr-2': 5, 'med-1': 2, 'fc-1': 10, 'fc-2': 12, 'acc-1': 5, 'acc-2': 5 } },
+  { time: '6:10 PM', densities: { 'gate-a': 25, 'gate-b': 45, 'gate-c': 20, 'gate-d': 25, 'sec-100': 15, 'sec-200': 20, 'sec-300': 15, 'sec-400': 18, 'rr-1': 10, 'rr-2': 10, 'med-1': 5, 'fc-1': 15, 'fc-2': 18, 'acc-1': 8, 'acc-2': 8 } },
+  { time: '6:20 PM', densities: { 'gate-a': 30, 'gate-b': 65, 'gate-c': 25, 'gate-d': 30, 'sec-100': 25, 'sec-200': 30, 'sec-300': 25, 'sec-400': 22, 'rr-1': 15, 'rr-2': 15, 'med-1': 5, 'fc-1': 20, 'fc-2': 25, 'acc-1': 12, 'acc-2': 12 } },
+  { time: '6:30 PM', densities: { 'gate-a': 35, 'gate-b': 85, 'gate-c': 30, 'gate-d': 35, 'sec-100': 35, 'sec-200': 35, 'sec-300': 30, 'sec-400': 25, 'rr-1': 20, 'rr-2': 20, 'med-1': 8, 'fc-1': 30, 'fc-2': 35, 'acc-1': 15, 'acc-2': 15 } },
+  { time: '6:40 PM', densities: { 'gate-a': 38, 'gate-b': 95, 'gate-c': 35, 'gate-d': 38, 'sec-100': 45, 'sec-200': 45, 'sec-300': 35, 'sec-400': 30, 'rr-1': 25, 'rr-2': 25, 'med-1': 10, 'fc-1': 35, 'fc-2': 40, 'acc-1': 18, 'acc-2': 18 } },
+  { time: '6:50 PM', densities: { 'gate-a': 35, 'gate-b': 80, 'gate-c': 35, 'gate-d': 35, 'sec-100': 55, 'sec-200': 55, 'sec-300': 40, 'sec-400': 35, 'rr-1': 30, 'rr-2': 30, 'med-1': 12, 'fc-1': 40, 'fc-2': 45, 'acc-1': 20, 'acc-2': 20 } },
+  { time: '7:00 PM', densities: { 'gate-a': 30, 'gate-b': 60, 'gate-c': 30, 'gate-d': 30, 'sec-100': 65, 'sec-200': 65, 'sec-300': 50, 'sec-400': 45, 'rr-1': 35, 'rr-2': 35, 'med-1': 15, 'fc-1': 45, 'fc-2': 50, 'acc-1': 22, 'acc-2': 22 } },
+  { time: '7:10 PM', densities: { 'gate-a': 25, 'gate-b': 45, 'gate-c': 25, 'gate-d': 25, 'sec-100': 60, 'sec-200': 60, 'sec-300': 55, 'sec-400': 50, 'rr-1': 30, 'rr-2': 30, 'med-1': 10, 'fc-1': 40, 'fc-2': 40, 'acc-1': 20, 'acc-2': 20 } },
+  { time: '7:20 PM', densities: { 'gate-a': 20, 'gate-b': 30, 'gate-c': 20, 'gate-d': 20, 'sec-100': 55, 'sec-200': 55, 'sec-300': 50, 'sec-400': 45, 'rr-1': 25, 'rr-2': 25, 'med-1': 8, 'fc-1': 35, 'fc-2': 35, 'acc-1': 15, 'acc-2': 15 } },
+  { time: '7:30 PM', densities: { 'gate-a': 15, 'gate-b': 20, 'gate-c': 15, 'gate-d': 15, 'sec-100': 50, 'sec-200': 50, 'sec-300': 45, 'sec-400': 40, 'rr-1': 20, 'rr-2': 20, 'med-1': 5, 'fc-1': 30, 'fc-2': 30, 'acc-1': 10, 'acc-2': 10 } },
+];
+
+let currentSnapshotIndex = 0;
+setInterval(() => {
+  currentSnapshotIndex = (currentSnapshotIndex + 1) % snapshots.length;
+}, 5000); // Update every 5 seconds
+
+app.get('/api/stadium-data', (req, res) => {
+  res.json(snapshots[currentSnapshotIndex]);
+});
+
 app.post('/api/navigation', async (req, res) => {
   const { from, to, accessibilityNeed } = req.body;
   if (!from || !to) {

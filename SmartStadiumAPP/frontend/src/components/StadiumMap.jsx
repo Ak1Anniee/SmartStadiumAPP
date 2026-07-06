@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const StadiumMap = () => {
   const [selectedBox, setSelectedBox] = useState(null);
@@ -12,22 +12,55 @@ const StadiumMap = () => {
   const [helpStatus, setHelpStatus] = useState('');
   const [isRequestingHelp, setIsRequestingHelp] = useState(false);
 
+  // Simulation State
+  const [stadiumData, setStadiumData] = useState({ time: '6:00 PM', densities: {} });
+
+  useEffect(() => {
+    const fetchStadiumData = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/api/stadium-data');
+        const data = await response.json();
+        setStadiumData(data);
+      } catch (err) {
+        console.error('Failed to fetch stadium data');
+      }
+    };
+
+    fetchStadiumData(); // Initial fetch
+    const interval = setInterval(fetchStadiumData, 2000); // Poll every 2s to catch the 5s updates smoothly
+    return () => clearInterval(interval);
+  }, []);
+
+  const getDensityColor = (id) => {
+    const density = stadiumData.densities[id];
+    if (density == null) return 'bg-slate-700 border-slate-500 text-slate-300';
+    if (density < 40) return 'bg-emerald-500/80 border-emerald-400 text-emerald-50';
+    if (density <= 70) return 'bg-amber-500/80 border-amber-400 text-amber-50';
+    return 'bg-red-600/90 border-red-400 text-red-50 shadow-red-500/50';
+  };
+
+  const getDensityInfo = (id) => {
+    const density = stadiumData.densities[id];
+    if (density == null) return '';
+    return ` (Density: ${density})`;
+  };
+
   const locations = [
-    { id: 'gate-a', name: 'Gate A', type: 'gate', className: 'col-span-2 bg-blue-600/80 border-blue-400 text-blue-50' },
-    { id: 'gate-b', name: 'Gate B', type: 'gate', className: 'col-span-2 bg-blue-600/80 border-blue-400 text-blue-50' },
-    { id: 'gate-c', name: 'Gate C', type: 'gate', className: 'col-span-2 bg-blue-600/80 border-blue-400 text-blue-50' },
-    { id: 'gate-d', name: 'Gate D', type: 'gate', className: 'col-span-2 bg-blue-600/80 border-blue-400 text-blue-50' },
-    { id: 'sec-100', name: 'Section 100', type: 'section', className: 'col-span-4 row-span-2 bg-emerald-600/80 border-emerald-400 text-emerald-50 h-32' },
-    { id: 'sec-200', name: 'Section 200', type: 'section', className: 'col-span-4 row-span-2 bg-emerald-600/80 border-emerald-400 text-emerald-50 h-32' },
-    { id: 'sec-300', name: 'Section 300', type: 'section', className: 'col-span-4 row-span-2 bg-emerald-600/80 border-emerald-400 text-emerald-50 h-32' },
-    { id: 'sec-400', name: 'Section 400', type: 'section', className: 'col-span-4 row-span-2 bg-emerald-600/80 border-emerald-400 text-emerald-50 h-32' },
-    { id: 'rr-1', name: 'Restroom 1', type: 'restroom', className: 'col-span-2 bg-amber-500/80 border-amber-300 text-amber-50' },
-    { id: 'rr-2', name: 'Restroom 2', type: 'restroom', className: 'col-span-2 bg-amber-500/80 border-amber-300 text-amber-50' },
-    { id: 'med-1', name: 'Medical Station', type: 'medical', className: 'col-span-4 bg-red-600/80 border-red-400 text-red-50' },
-    { id: 'fc-1', name: 'Food Court 1', type: 'food', className: 'col-span-4 bg-orange-500/80 border-orange-300 text-orange-50' },
-    { id: 'fc-2', name: 'Food Court 2', type: 'food', className: 'col-span-4 bg-orange-500/80 border-orange-300 text-orange-50' },
-    { id: 'acc-1', name: 'Accessible Entrance 1', type: 'accessible', className: 'col-span-4 bg-indigo-600/80 border-indigo-400 text-indigo-50' },
-    { id: 'acc-2', name: 'Accessible Entrance 2', type: 'accessible', className: 'col-span-4 bg-indigo-600/80 border-indigo-400 text-indigo-50' },
+    { id: 'gate-a', name: 'Gate A', type: 'gate', layoutClass: 'col-span-2' },
+    { id: 'gate-b', name: 'Gate B', type: 'gate', layoutClass: 'col-span-2' },
+    { id: 'gate-c', name: 'Gate C', type: 'gate', layoutClass: 'col-span-2' },
+    { id: 'gate-d', name: 'Gate D', type: 'gate', layoutClass: 'col-span-2' },
+    { id: 'sec-100', name: 'Section 100', type: 'section', layoutClass: 'col-span-4 row-span-2 h-32' },
+    { id: 'sec-200', name: 'Section 200', type: 'section', layoutClass: 'col-span-4 row-span-2 h-32' },
+    { id: 'sec-300', name: 'Section 300', type: 'section', layoutClass: 'col-span-4 row-span-2 h-32' },
+    { id: 'sec-400', name: 'Section 400', type: 'section', layoutClass: 'col-span-4 row-span-2 h-32' },
+    { id: 'rr-1', name: 'Restroom 1', type: 'restroom', layoutClass: 'col-span-2' },
+    { id: 'rr-2', name: 'Restroom 2', type: 'restroom', layoutClass: 'col-span-2' },
+    { id: 'med-1', name: 'Medical Station', type: 'medical', layoutClass: 'col-span-4' },
+    { id: 'fc-1', name: 'Food Court 1', type: 'food', layoutClass: 'col-span-4' },
+    { id: 'fc-2', name: 'Food Court 2', type: 'food', layoutClass: 'col-span-4' },
+    { id: 'acc-1', name: 'Accessible Entrance 1', type: 'accessible', layoutClass: 'col-span-4' },
+    { id: 'acc-2', name: 'Accessible Entrance 2', type: 'accessible', layoutClass: 'col-span-4' },
   ];
 
   const accessibilityOptions = ['None', 'Wheelchair', 'Elderly', 'Visual', 'Hearing'];
@@ -87,10 +120,20 @@ const StadiumMap = () => {
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col items-center py-12 px-4 font-sans">
-      <div className="w-full max-w-5xl mb-8 text-center">
+      
+      <div className="w-full max-w-5xl mb-8 flex flex-col items-center text-center">
         <h1 className="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600">
           Smart Stadium Map
         </h1>
+        
+        {/* Simulated Time Display */}
+        <div className="flex items-center space-x-3 bg-slate-800/80 border border-slate-600 px-5 py-2.5 rounded-full mb-4 shadow-lg shadow-cyan-900/20 backdrop-blur-sm">
+          <div className="w-2.5 h-2.5 bg-rose-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.8)]"></div>
+          <p className="text-cyan-300 font-semibold tracking-wide text-sm md:text-base">
+            Simulated Time: <span className="text-white ml-1 font-bold">{stadiumData.time}</span>
+          </p>
+        </div>
+
         <p className="text-slate-400 text-lg">
           Select any section to view details, or get navigation directions below.
         </p>
@@ -207,15 +250,19 @@ const StadiumMap = () => {
               key={loc.id}
               onClick={() => setSelectedBox(loc.name)}
               className={`
-                ${loc.className} 
-                flex items-center justify-center p-4 rounded-xl border border-opacity-50
+                ${loc.layoutClass} 
+                ${getDensityColor(loc.id)}
+                flex flex-col items-center justify-center p-4 rounded-xl border border-opacity-50
                 font-bold text-sm md:text-base shadow-lg
-                transition-all duration-300 ease-out transform
+                transition-colors duration-500 ease-out transform
                 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-xl hover:brightness-125
                 focus:outline-none focus:ring-4 focus:ring-white/20 active:scale-95
               `}
             >
-              {loc.name}
+              <span>{loc.name}</span>
+              {/* Optional: uncomment to show actual density numbers 
+                <span className="text-xs font-normal opacity-80 mt-1">{getDensityInfo(loc.id)}</span>
+              */}
             </button>
           ))}
         </div>
