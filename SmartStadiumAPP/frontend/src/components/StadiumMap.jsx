@@ -6,8 +6,11 @@ const StadiumMap = () => {
   // Navigation State
   const [fromZone, setFromZone] = useState('');
   const [toZone, setToZone] = useState('');
+  const [accessibilityNeed, setAccessibilityNeed] = useState('None');
   const [directions, setDirections] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [helpStatus, setHelpStatus] = useState('');
+  const [isRequestingHelp, setIsRequestingHelp] = useState(false);
 
   const locations = [
     { id: 'gate-a', name: 'Gate A', type: 'gate', className: 'col-span-2 bg-blue-600/80 border-blue-400 text-blue-50' },
@@ -27,16 +30,19 @@ const StadiumMap = () => {
     { id: 'acc-2', name: 'Accessible Entrance 2', type: 'accessible', className: 'col-span-4 bg-indigo-600/80 border-indigo-400 text-indigo-50' },
   ];
 
+  const accessibilityOptions = ['None', 'Wheelchair', 'Elderly', 'Visual', 'Hearing'];
+
   const handleGetDirections = async () => {
     if (!fromZone || !toZone) return;
     setIsLoading(true);
     setDirections('');
+    setHelpStatus('');
 
     try {
       const response = await fetch('http://localhost:3000/api/navigation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ from: fromZone, to: toZone })
+        body: JSON.stringify({ from: fromZone, to: toZone, accessibilityNeed })
       });
       const data = await response.json();
       if (data.directions) {
@@ -48,6 +54,34 @@ const StadiumMap = () => {
       setDirections('Failed to connect to the backend server. Is it running?');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleRequestHelp = async () => {
+    if (!fromZone) {
+      setHelpStatus('Please select where you are ("I am at") first.');
+      return;
+    }
+
+    setIsRequestingHelp(true);
+    setHelpStatus('');
+
+    try {
+      const response = await fetch('http://localhost:3000/api/request-help', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ from: fromZone, to: toZone, need: accessibilityNeed })
+      });
+      const data = await response.json();
+      if (data.message) {
+        setHelpStatus(data.message);
+      } else {
+        setHelpStatus('Error saving request.');
+      }
+    } catch (err) {
+      setHelpStatus('Failed to connect to the server.');
+    } finally {
+      setIsRequestingHelp(false);
     }
   };
 
@@ -64,7 +98,30 @@ const StadiumMap = () => {
       
       {/* Fan Navigation Panel */}
       <div className="w-full max-w-5xl bg-slate-800/80 p-6 rounded-2xl shadow-xl border border-slate-700 mb-8 z-10 relative">
-        <h2 className="text-2xl font-bold mb-4 text-cyan-400">Fan Navigation</h2>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+          <h2 className="text-2xl font-bold text-cyan-400">Fan Navigation</h2>
+          
+          {/* Accessibility Toggle */}
+          <div className="mt-4 md:mt-0 flex items-center space-x-3 bg-slate-900/50 p-2 rounded-xl border border-slate-700">
+            <span className="text-sm text-slate-400 font-medium ml-2">Assistance:</span>
+            <div className="flex space-x-1">
+              {accessibilityOptions.map(opt => (
+                <button
+                  key={opt}
+                  onClick={() => setAccessibilityNeed(opt)}
+                  className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-all ${
+                    accessibilityNeed === opt 
+                      ? 'bg-indigo-500 text-white shadow-md' 
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'
+                  }`}
+                >
+                  {opt}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
         <div className="flex flex-col md:flex-row gap-4 items-end">
           <div className="flex-1 w-full">
             <label className="block text-sm font-medium text-slate-400 mb-2">I am at</label>
@@ -90,28 +147,49 @@ const StadiumMap = () => {
             </select>
           </div>
           
-          <button 
-            onClick={handleGetDirections}
-            disabled={!fromZone || !toZone || isLoading}
-            className={`w-full md:w-auto px-8 py-3 rounded-lg font-bold text-white transition-all shadow-lg
-              ${(!fromZone || !toZone || isLoading) 
-                ? 'bg-slate-600 cursor-not-allowed opacity-70' 
-                : 'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 hover:shadow-cyan-500/25 hover:-translate-y-0.5'
-              }
-            `}
-          >
-            {isLoading ? (
-              <span className="flex items-center justify-center gap-2">
-                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Calculating...
-              </span>
-            ) : 'Get Directions'}
-          </button>
+          <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+            <button 
+              onClick={handleGetDirections}
+              disabled={!fromZone || !toZone || isLoading}
+              className={`px-8 py-3 rounded-lg font-bold text-white transition-all shadow-lg w-full md:w-auto
+                ${(!fromZone || !toZone || isLoading) 
+                  ? 'bg-slate-600 cursor-not-allowed opacity-70' 
+                  : 'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 hover:shadow-cyan-500/25 hover:-translate-y-0.5'
+                }
+              `}
+            >
+              {isLoading ? 'Calculating...' : 'Get Directions'}
+            </button>
+            
+            {/* Request Staff Help Button (Visible only if Accessibility need is selected) */}
+            {accessibilityNeed !== 'None' && (
+              <button
+                onClick={handleRequestHelp}
+                disabled={isRequestingHelp || !fromZone}
+                className={`px-6 py-3 rounded-lg font-bold text-white transition-all shadow-lg w-full md:w-auto
+                  ${(!fromZone || isRequestingHelp)
+                    ? 'bg-slate-700 text-slate-400 cursor-not-allowed border border-slate-600'
+                    : 'bg-rose-600 hover:bg-rose-500 hover:shadow-rose-500/25 border border-rose-500 hover:-translate-y-0.5'
+                  }
+                `}
+              >
+                {isRequestingHelp ? 'Requesting...' : 'Request Staff Help'}
+              </button>
+            )}
+          </div>
         </div>
         
+        {/* Help Status Message */}
+        {helpStatus && (
+          <div className={`mt-4 p-4 rounded-xl border text-sm font-medium ${
+            helpStatus.includes('ETA') 
+              ? 'bg-emerald-900/40 border-emerald-500/50 text-emerald-400' 
+              : 'bg-amber-900/40 border-amber-500/50 text-amber-400'
+          }`}>
+            {helpStatus}
+          </div>
+        )}
+
         {/* Directions Display Card */}
         {directions && (
           <div className="mt-6 p-6 bg-slate-900 rounded-xl border border-slate-700 shadow-inner animate-fade-in text-slate-300 leading-relaxed whitespace-pre-wrap">
@@ -121,6 +199,7 @@ const StadiumMap = () => {
         )}
       </div>
 
+      {/* Map Section */}
       <div className="w-full max-w-5xl bg-slate-800/50 backdrop-blur-md p-6 rounded-3xl shadow-2xl border border-slate-700/50 mb-8">
         <div className="grid grid-cols-8 gap-4 auto-rows-fr">
           {locations.map((loc) => (

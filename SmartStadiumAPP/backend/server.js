@@ -19,7 +19,7 @@ try {
 }
 
 app.post('/api/navigation', async (req, res) => {
-  const { from, to } = req.body;
+  const { from, to, accessibilityNeed } = req.body;
   if (!from || !to) {
     return res.status(400).json({ error: 'Missing from or to parameters' });
   }
@@ -28,7 +28,7 @@ app.post('/api/navigation', async (req, res) => {
     const data = await fs.readFile('./data/stadium.json', 'utf8');
     const stadium = JSON.parse(data);
 
-    const prompt = `
+    let prompt = `
       You are an AI assistant for a Smart Stadium navigation app.
       A fan wants to go from "${from}" to "${to}".
       
@@ -37,8 +37,18 @@ app.post('/api/navigation', async (req, res) => {
       
       Using the shortest path between "${from}" and "${to}" through the connected zones, generate friendly, clear, numbered turn-by-turn walking directions in 3-5 steps. 
       Mention the total estimated walk time and landmarks along the way based on the data.
-      Format the output cleanly. Just text, no markdown wrappers like \`\`\`
     `;
+
+    if (accessibilityNeed && accessibilityNeed !== 'None') {
+      prompt += `
+      CRITICAL ACCESSIBILITY REQUIREMENT: 
+      The fan has selected the following accessibility need: "${accessibilityNeed}". 
+      You MUST avoid stairs, prefer ramps and elevators, and explicitly mention any accessible restrooms or accessible entrances along the way.
+      Ensure the route is safe and accommodating for their specific need.
+      `;
+    }
+
+    prompt += `\nFormat the output cleanly. Just text, no markdown wrappers like \`\`\``;
 
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
@@ -49,6 +59,42 @@ app.post('/api/navigation', async (req, res) => {
   } catch (error) {
     console.error('Error generating directions:', error);
     res.status(500).json({ error: 'Failed to generate directions. Make sure GEMINI_API_KEY is set.' });
+  }
+});
+
+app.post('/api/request-help', async (req, res) => {
+  const { from, to, need } = req.body;
+  
+  if (!from || !need) {
+    return res.status(400).json({ error: 'Missing required parameters' });
+  }
+
+  try {
+    const filePath = './data/requests.json';
+    let requests = [];
+    try {
+      const data = await fs.readFile(filePath, 'utf8');
+      requests = JSON.parse(data);
+    } catch (e) {
+      // File might not exist yet, we will create it
+    }
+
+    const newRequest = {
+      id: Date.now().toString(),
+      timestamp: new Date().toISOString(),
+      from,
+      to: to || 'Not specified',
+      need,
+      status: 'pending'
+    };
+
+    requests.push(newRequest);
+    await fs.writeFile(filePath, JSON.stringify(requests, null, 2));
+
+    res.json({ message: 'Staff notified, ETA 3 minutes.' });
+  } catch (error) {
+    console.error('Error saving request:', error);
+    res.status(500).json({ error: 'Failed to save staff request' });
   }
 });
 
