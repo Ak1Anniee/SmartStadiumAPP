@@ -2,6 +2,12 @@ import { useState } from 'react';
 
 const StadiumMap = () => {
   const [selectedBox, setSelectedBox] = useState(null);
+  
+  // Navigation State
+  const [fromZone, setFromZone] = useState('');
+  const [toZone, setToZone] = useState('');
+  const [directions, setDirections] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const locations = [
     { id: 'gate-a', name: 'Gate A', type: 'gate', className: 'col-span-2 bg-blue-600/80 border-blue-400 text-blue-50' },
@@ -21,6 +27,30 @@ const StadiumMap = () => {
     { id: 'acc-2', name: 'Accessible Entrance 2', type: 'accessible', className: 'col-span-4 bg-indigo-600/80 border-indigo-400 text-indigo-50' },
   ];
 
+  const handleGetDirections = async () => {
+    if (!fromZone || !toZone) return;
+    setIsLoading(true);
+    setDirections('');
+
+    try {
+      const response = await fetch('http://localhost:3000/api/navigation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ from: fromZone, to: toZone })
+      });
+      const data = await response.json();
+      if (data.directions) {
+        setDirections(data.directions);
+      } else {
+        setDirections('Error: ' + (data.error || 'Unknown error'));
+      }
+    } catch (err) {
+      setDirections('Failed to connect to the backend server. Is it running?');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col items-center py-12 px-4 font-sans">
       <div className="w-full max-w-5xl mb-8 text-center">
@@ -28,10 +58,69 @@ const StadiumMap = () => {
           Smart Stadium Map
         </h1>
         <p className="text-slate-400 text-lg">
-          Select any section to view details
+          Select any section to view details, or get navigation directions below.
         </p>
       </div>
       
+      {/* Fan Navigation Panel */}
+      <div className="w-full max-w-5xl bg-slate-800/80 p-6 rounded-2xl shadow-xl border border-slate-700 mb-8 z-10 relative">
+        <h2 className="text-2xl font-bold mb-4 text-cyan-400">Fan Navigation</h2>
+        <div className="flex flex-col md:flex-row gap-4 items-end">
+          <div className="flex-1 w-full">
+            <label className="block text-sm font-medium text-slate-400 mb-2">I am at</label>
+            <select 
+              className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg p-3 outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
+              value={fromZone}
+              onChange={(e) => setFromZone(e.target.value)}
+            >
+              <option value="">Select starting point...</option>
+              {locations.map(loc => <option key={`from-${loc.id}`} value={loc.name}>{loc.name}</option>)}
+            </select>
+          </div>
+          
+          <div className="flex-1 w-full">
+            <label className="block text-sm font-medium text-slate-400 mb-2">I want to go to</label>
+            <select 
+              className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg p-3 outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
+              value={toZone}
+              onChange={(e) => setToZone(e.target.value)}
+            >
+              <option value="">Select destination...</option>
+              {locations.map(loc => <option key={`to-${loc.id}`} value={loc.name}>{loc.name}</option>)}
+            </select>
+          </div>
+          
+          <button 
+            onClick={handleGetDirections}
+            disabled={!fromZone || !toZone || isLoading}
+            className={`w-full md:w-auto px-8 py-3 rounded-lg font-bold text-white transition-all shadow-lg
+              ${(!fromZone || !toZone || isLoading) 
+                ? 'bg-slate-600 cursor-not-allowed opacity-70' 
+                : 'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 hover:shadow-cyan-500/25 hover:-translate-y-0.5'
+              }
+            `}
+          >
+            {isLoading ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Calculating...
+              </span>
+            ) : 'Get Directions'}
+          </button>
+        </div>
+        
+        {/* Directions Display Card */}
+        {directions && (
+          <div className="mt-6 p-6 bg-slate-900 rounded-xl border border-slate-700 shadow-inner animate-fade-in text-slate-300 leading-relaxed whitespace-pre-wrap">
+            <h3 className="text-lg font-semibold text-emerald-400 mb-3">Your Route:</h3>
+            {directions}
+          </div>
+        )}
+      </div>
+
       <div className="w-full max-w-5xl bg-slate-800/50 backdrop-blur-md p-6 rounded-3xl shadow-2xl border border-slate-700/50 mb-8">
         <div className="grid grid-cols-8 gap-4 auto-rows-fr">
           {locations.map((loc) => (
@@ -61,7 +150,7 @@ const StadiumMap = () => {
           <div className="px-8 py-5 bg-slate-800 rounded-2xl shadow-xl border border-slate-600 flex items-center space-x-4">
             <div className="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></div>
             <p className="text-xl md:text-2xl font-semibold">
-              <span className="text-slate-400 mr-2">Selected:</span> 
+              <span className="text-slate-400 mr-2">Selected Zone:</span> 
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">
                 {selectedBox}
               </span>

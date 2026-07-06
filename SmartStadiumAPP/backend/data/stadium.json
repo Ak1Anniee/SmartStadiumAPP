@@ -1,0 +1,20 @@
+{
+  "connectedZones": [
+    { "zone1": "Gate A", "zone2": "Food Court 1", "time": "2 mins", "landmark": "Team Statue" },
+    { "zone1": "Gate A", "zone2": "Accessible Entrance 1", "time": "1 min", "landmark": "Security Checkpoint A" },
+    { "zone1": "Gate B", "zone2": "Food Court 2", "time": "2 mins", "landmark": "East Plaza" },
+    { "zone1": "Gate C", "zone2": "Section 300", "time": "4 mins", "landmark": "South Concourse" },
+    { "zone1": "Gate D", "zone2": "Section 400", "time": "4 mins", "landmark": "West Concourse" },
+    { "zone1": "Food Court 1", "zone2": "Section 100", "time": "3 mins", "landmark": "Main Escalators" },
+    { "zone1": "Food Court 1", "zone2": "Restroom 1", "time": "1 min", "landmark": "Blue Column 4" },
+    { "zone1": "Food Court 2", "zone2": "Section 200", "time": "3 mins", "landmark": "East Escalators" },
+    { "zone1": "Section 100", "zone2": "Section 200", "time": "2 mins", "landmark": "North Walkway" },
+    { "zone1": "Section 200", "zone2": "Section 300", "time": "3 mins", "landmark": "East Walkway" },
+    { "zone1": "Section 300", "zone2": "Section 400", "time": "2 mins", "landmark": "South Walkway" },
+    { "zone1": "Section 400", "zone2": "Section 100", "time": "3 mins", "landmark": "West Walkway" },
+    { "zone1": "Section 200", "zone2": "Medical Station", "time": "1 min", "landmark": "Red Cross Sign" },
+    { "zone1": "Section 400", "zone2": "Restroom 2", "time": "1 min", "landmark": "Green Column 2" },
+    { "zone1": "Accessible Entrance 1", "zone2": "Section 100", "time": "3 mins", "landmark": "Elevator Bank A" },
+    { "zone1": "Accessible Entrance 2", "zone2": "Section 300", "time": "3 mins", "landmark": "Elevator Bank B" }
+  ]
+}
