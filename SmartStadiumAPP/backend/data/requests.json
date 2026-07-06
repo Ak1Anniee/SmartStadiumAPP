@@ -5,7 +5,7 @@
     "from": "Gate A",
     "to": "Section 200",
     "need": "Wheelchair",
-    "status": "pending"
+    "status": "resolved"
   },
   {
     "id": "1783362140645",
@@ -13,6 +13,14 @@
     "from": "Gate A",
     "to": "Section 200",
     "need": "Wheelchair",
-    "status": "pending"
+    "status": "resolved"
+  },
+  {
+    "id": "1783363272276",
+    "timestamp": "2026-07-06T18:41:12.276Z",
+    "from": "Food Court 1",
+    "to": "Accessible Entrance 1",
+    "need": "Visual",
+    "status": "resolved"
   }
 ]

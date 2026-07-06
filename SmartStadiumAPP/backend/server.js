@@ -41,6 +41,37 @@ app.get('/api/stadium-data', (req, res) => {
   res.json(snapshots[currentSnapshotIndex]);
 });
 
+app.get('/api/requests', async (req, res) => {
+  try {
+    const filePath = './data/requests.json';
+    const data = await fs.readFile(filePath, 'utf8');
+    const requests = JSON.parse(data);
+    res.json(requests.reverse()); // Newest first
+  } catch (error) {
+    res.json([]);
+  }
+});
+
+app.put('/api/requests/:id/resolve', async (req, res) => {
+  try {
+    const filePath = './data/requests.json';
+    const data = await fs.readFile(filePath, 'utf8');
+    const requests = JSON.parse(data);
+    
+    const index = requests.findIndex(r => r.id === req.params.id);
+    if (index !== -1) {
+      requests[index].status = 'resolved';
+      await fs.writeFile(filePath, JSON.stringify(requests, null, 2));
+      res.json(requests[index]);
+    } else {
+      res.status(404).json({ error: 'Request not found' });
+    }
+  } catch (error) {
+    console.error('Error resolving request:', error);
+    res.status(500).json({ error: 'Failed to update request' });
+  }
+});
+
 app.post('/api/navigation', async (req, res) => {
   const { from, to, accessibilityNeed } = req.body;
   if (!from || !to) {
