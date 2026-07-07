@@ -152,6 +152,64 @@ app.post('/api/request-help', async (req, res) => {
   }
 });
 
+app.post('/api/ai-insights', async (req, res) => {
+  const { stadiumData, requests } = req.body;
+  if (!stadiumData || !requests) {
+    return res.status(400).json({ error: 'Missing stadiumData or requests' });
+  }
+
+  if (!ai) {
+    console.error("AI client not initialized. Check GEMINI_API_KEY.");
+    return res.status(500).json({ error: 'AI client not initialized on server. Check API key.' });
+  }
+
+  try {
+    const prompt = `
+      You are an AI assistant for a Smart Stadium Organizer Dashboard.
+      Analyze the current stadium state and provide insights.
+      
+      Current Time: ${stadiumData.time}
+      Zone Densities: ${JSON.stringify(stadiumData.densities)}
+      Pending Accessibility/Help Requests: ${JSON.stringify(requests.filter(r => r.status === 'pending'))}
+      
+      1. Identify the top 1-2 zones at risk of overcrowding in the next 15 minutes, with a one-sentence reason for each.
+      2. Recommend a specific staff reallocation action (e.g., "move 2 volunteers from Gate A to Gate B").
+      3. Rank the pending accessibility requests by urgency, with a short reason for the top pick. If there are no pending requests, return an empty array for prioritizedRequests.
+      
+      Respond strictly in JSON format matching exactly this schema:
+      {
+        "riskZones": [{ "zone": "string", "reason": "string" }],
+        "staffingRecommendation": "string",
+        "prioritizedRequests": [{ "requestId": "string", "urgencyReason": "string" }]
+      }
+    `;
+
+    console.log(`[${new Date().toISOString()}] Calling Gemini API for insights...`);
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+      }
+    });
+
+    console.log(`[${new Date().toISOString()}] Raw Gemini API response text:`, response.text);
+    
+    let parsedData;
+    try {
+      parsedData = JSON.parse(response.text);
+    } catch (parseError) {
+      console.error(`[${new Date().toISOString()}] Failed to parse Gemini response as JSON. Raw text:`, response.text);
+      return res.status(500).json({ error: 'Received invalid JSON format from AI.' });
+    }
+
+    res.json(parsedData);
+  } catch (error) {
+    console.error(`[${new Date().toISOString()}] Error generating AI insights:`, error);
+    res.status(500).json({ error: 'Failed to generate AI insights: ' + (error.message || 'Unknown error') });
+  }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Backend server running on port ${PORT}`);

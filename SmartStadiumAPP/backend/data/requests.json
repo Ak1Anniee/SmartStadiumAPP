@@ -22,5 +22,13 @@
     "to": "Accessible Entrance 1",
     "need": "Visual",
     "status": "resolved"
+  },
+  {
+    "id": "1783431646016",
+    "timestamp": "2026-07-07T13:40:46.016Z",
+    "from": "Medical Station",
+    "to": "Food Court 2",
+    "need": "Elderly",
+    "status": "resolved"
   }
 ]
