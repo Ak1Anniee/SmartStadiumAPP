@@ -212,6 +212,7 @@ app.post('/api/ai-insights', async (req, res) => {
   }
 
   try {
+
     const prompt = `
       You are an AI assistant for a Smart Stadium Organizer Dashboard.
       Analyze the current stadium state and provide insights.

@@ -6,7 +6,7 @@
     "type": "Medical",
     "note": "",
     "severity": "high",
-    "status": "open",
+    "status": "resolved",
     "suggestedResponse": "Please dispatch nearest available staff to investigate immediately."
   }
 ]

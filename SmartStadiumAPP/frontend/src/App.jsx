@@ -9,6 +9,8 @@ function App() {
   const isFanRoute = window.location.pathname.startsWith('/fan');
 
   useEffect(() => {
+    if (!isOrganizerRoute && !isFanRoute) return;
+
     const fetchStadiumData = async () => {
       try {
         const response = await fetch('http://localhost:3000/api/stadium-data');
@@ -21,7 +23,7 @@ function App() {
     fetchStadiumData(); // Initial fetch
     const interval = setInterval(fetchStadiumData, 2000); // Poll every 2s
     return () => clearInterval(interval);
-  }, []);
+  }, [isOrganizerRoute, isFanRoute]);
 
   if (!isOrganizerRoute && !isFanRoute) {
     return <LandingPage />;

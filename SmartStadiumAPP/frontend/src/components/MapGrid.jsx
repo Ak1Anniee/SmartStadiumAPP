@@ -57,5 +57,6 @@ const MapGrid = ({ stadiumData, selectedBox, onSelectBox, large = false }) => {
   );
 };
 
-export default MapGrid;
+const MemoizedMapGrid = React.memo(MapGrid);
+export default MemoizedMapGrid;
 export { locations };

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import MapGrid, { locations } from './MapGrid';
 
 const UI_TRANSLATIONS = {
@@ -207,15 +207,24 @@ const FanView = ({ stadiumData }) => {
   const [isSubmittingIncident, setIsSubmittingIncident] = useState(false);
 
   const [myRequestIds, setMyRequestIds] = useState([]);
+  const myRequestIdsRef = useRef(myRequestIds);
+  useEffect(() => {
+    myRequestIdsRef.current = myRequestIds;
+  }, [myRequestIds]);
+
   const [allRequests, setAllRequests] = useState([]);
   const [isMyRequestsExpanded, setIsMyRequestsExpanded] = useState(true);
+  const isMyRequestsExpandedRef = useRef(isMyRequestsExpanded);
+  useEffect(() => {
+    isMyRequestsExpandedRef.current = isMyRequestsExpanded;
+  }, [isMyRequestsExpanded]);
   
   const [language, setLanguage] = useState('English');
   const t = UI_TRANSLATIONS[language] || UI_TRANSLATIONS.English;
 
   useEffect(() => {
     const fetchRequests = async () => {
-      if (myRequestIds.length === 0) return;
+      if (myRequestIdsRef.current.length === 0 || !isMyRequestsExpandedRef.current) return;
       try {
         const response = await fetch('http://localhost:3000/api/requests');
         const data = await response.json();
@@ -227,7 +236,7 @@ const FanView = ({ stadiumData }) => {
     fetchRequests();
     const interval = setInterval(fetchRequests, 2000);
     return () => clearInterval(interval);
-  }, [myRequestIds.length]);
+  }, []);
 
   const accessibilityOptions = ['None', 'Wheelchair', 'Elderly', 'Visual', 'Hearing'];
 

@@ -50,11 +50,15 @@ const OrganizerDashboard = ({ stadiumData }) => {
     latestDataRef.current = { stadiumData, requests };
   }, [stadiumData, requests]);
 
+  const isFetchingRef = useRef(false);
   const fetchInsights = async () => {
+    if (isFetchingRef.current) return;
+    
     const { stadiumData: currentStadiumData, requests: currentRequests } = latestDataRef.current;
     if (!currentStadiumData || !currentStadiumData.densities) return;
     
     setIsFetchingInsights(true);
+    isFetchingRef.current = true;
     setInsightError(null);
     try {
       const controller = new AbortController();
@@ -79,6 +83,7 @@ const OrganizerDashboard = ({ stadiumData }) => {
       setInsightError(err.name === 'AbortError' ? 'Request timed out after 15s.' : 'Failed to connect to the server.');
     } finally {
       setIsFetchingInsights(false);
+      isFetchingRef.current = false;
     }
   };
 
@@ -165,7 +170,13 @@ const OrganizerDashboard = ({ stadiumData }) => {
     return { name: zoneName, density: maxDensity };
   }, [stadiumData]);
 
-  const activeRequestsCount = requests.filter(r => r.status === 'pending').length;
+  const activeRequestsCount = useMemo(() => 
+    requests.filter(r => r.status === 'pending').length
+  , [requests]);
+
+  const openIncidents = useMemo(() => 
+    incidents.filter(i => i.status === 'open')
+  , [incidents]);
 
   return (
     <div className="w-full flex flex-col items-center py-8 px-4 bg-slate-950 min-h-screen font-sans">
@@ -317,12 +328,12 @@ const OrganizerDashboard = ({ stadiumData }) => {
               Active Incidents
             </h2>
             <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-xl flex-1 overflow-y-auto p-4 space-y-4">
-              {incidents.filter(i => i.status === 'open').length === 0 ? (
+              {openIncidents.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-20 text-slate-500">
                   <p>No active incidents.</p>
                 </div>
               ) : (
-                incidents.filter(i => i.status === 'open').map(inc => (
+                openIncidents.map(inc => (
                   <div key={inc.id} className="bg-slate-800 border border-red-500/50 rounded-xl p-4 shadow-lg shadow-red-900/10">
                     <div className="flex justify-between items-start mb-2">
                       <span className="px-2 py-1 text-xs font-bold rounded bg-red-900/50 text-red-400 uppercase tracking-wider border border-red-800/50">
