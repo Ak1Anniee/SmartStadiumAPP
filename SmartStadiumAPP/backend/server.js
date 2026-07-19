@@ -20,6 +20,17 @@ try {
 
 const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-3.1-flash-lite';
 
+// Utility for sanitizing user input and preventing prompt injection
+const sanitizeInput = (str, maxLength = 250) => {
+  if (typeof str !== 'string') return '';
+  // Strip control characters and potentially harmful script/prompt injection tokens
+  return str.replace(/[^a-zA-Z0-9\s.,!?'"-]/g, '').slice(0, maxLength).trim();
+};
+
+const validateEnum = (val, allowedValues, defaultVal) => {
+  return allowedValues.includes(val) ? val : defaultVal;
+};
+
 // Simulation Data
 const snapshots = [
   { time: '6:00 PM', densities: { 'gate-a': 20, 'gate-b': 25, 'gate-c': 15, 'gate-d': 20, 'sec-100': 10, 'sec-200': 15, 'sec-300': 10, 'sec-400': 12, 'rr-1': 5, 'rr-2': 5, 'med-1': 2, 'fc-1': 10, 'fc-2': 12, 'acc-1': 5, 'acc-2': 5 } },
@@ -75,10 +86,15 @@ app.put('/api/requests/:id/resolve', async (req, res) => {
 });
 
 app.post('/api/navigation', async (req, res) => {
-  const { from, to, accessibilityNeed, language } = req.body;
+  let { from, to, accessibilityNeed, language } = req.body;
   if (!from || !to) {
     return res.status(400).json({ error: 'Missing from or to parameters' });
   }
+
+  from = sanitizeInput(from, 50);
+  to = sanitizeInput(to, 50);
+  accessibilityNeed = validateEnum(accessibilityNeed, ['None', 'Wheelchair', 'Elderly', 'Visual', 'Hearing'], 'None');
+  language = validateEnum(language, ['English', 'Spanish', 'French', 'Portuguese', 'Arabic'], 'English');
 
   try {
     const data = await fs.readFile('./data/stadium.json', 'utf8');
@@ -122,11 +138,16 @@ app.post('/api/navigation', async (req, res) => {
 });
 
 app.post('/api/request-help', async (req, res) => {
-  const { from, to, need, language } = req.body;
+  let { from, to, need, language } = req.body;
 
   if (!from || !need) {
     return res.status(400).json({ error: 'Missing required parameters' });
   }
+
+  from = sanitizeInput(from, 50);
+  to = to ? sanitizeInput(to, 50) : 'Not specified';
+  need = validateEnum(need, ['Wheelchair', 'Elderly', 'Visual', 'Hearing'], 'Other');
+  language = validateEnum(language, ['English', 'Spanish', 'French', 'Portuguese', 'Arabic'], 'English');
 
   try {
     const filePath = './data/requests.json';
@@ -174,8 +195,10 @@ app.post('/api/request-help', async (req, res) => {
 });
 
 app.post('/api/requests/:id/subissue', async (req, res) => {
-  const { note } = req.body;
+  let { note } = req.body;
   if (!note) return res.status(400).json({ error: 'Missing note parameter' });
+
+  note = sanitizeInput(note, 250);
 
   try {
     const filePath = './data/requests.json';
@@ -261,7 +284,7 @@ app.post('/api/ai-insights', async (req, res) => {
       return res.status(429).json({ error: 'AI insights temporarily unavailable, please try again in a moment' });
     }
 
-    res.status(500).json({ error: 'Failed to generate AI insights: ' + (error.message || 'Unknown error') });
+    res.status(500).json({ error: 'An unexpected error occurred while generating insights.' });
   }
 });
 
@@ -282,11 +305,15 @@ app.get('/api/incidents', async (req, res) => {
 
 app.post('/api/incidents', async (req, res) => {
   console.log(`[${new Date().toISOString()}] POST /api/incidents received with body:`, req.body);
-  const { zone, type, note } = req.body;
+  let { zone, type, note } = req.body;
   if (!zone || !type) {
     console.warn(`[${new Date().toISOString()}] POST /api/incidents missing parameters`);
     return res.status(400).json({ error: 'Missing required parameters' });
   }
+
+  zone = sanitizeInput(zone, 50);
+  type = validateEnum(type, ['Medical', 'Security', 'Lost Person', 'Overcrowding'], 'Other');
+  note = note ? sanitizeInput(note, 250) : '';
 
   try {
     const filePath = './data/incidents.json';

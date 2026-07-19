@@ -8,5 +8,15 @@
     "severity": "high",
     "status": "resolved",
     "suggestedResponse": "Please dispatch nearest available staff to investigate immediately."
+  },
+  {
+    "id": "1784462741626",
+    "timestamp": "2026-07-19T12:05:41.626Z",
+    "zone": "gate-a",
+    "type": "Medical",
+    "note": "Test incident with scriptalert1script",
+    "severity": "high",
+    "status": "open",
+    "suggestedResponse": "Please dispatch emergency medical personnel to zone \"gate-a\" immediately to assess the situation. Given the current density of 30 people in this area, ensure the path remains clear for responders to access the individual safely."
   }
 ]
