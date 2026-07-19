@@ -51,7 +51,7 @@
     "from": "sec-100",
     "to": "sec-200",
     "need": "Wheelchair",
-    "status": "pending",
+    "status": "resolved",
     "subIssues": []
   }
 ]
