@@ -34,7 +34,7 @@ const SubIssueForm = ({ requestId, setAllRequests, language }) => {
     return (
       <button 
         onClick={() => setIsOpen(true)}
-        className="text-xs font-bold text-cyan-400 hover:text-cyan-300 underline cursor-pointer"
+        className="text-[11px] font-[Montserrat] font-bold uppercase tracking-tight text-[#002d72] hover:text-blue-800 underline transition-colors cursor-pointer"
       >
         {t.raiseSubIssue}
       </button>
@@ -48,14 +48,14 @@ const SubIssueForm = ({ requestId, setAllRequests, language }) => {
         value={note}
         onChange={e => setNote(e.target.value)}
         placeholder="e.g., still no one has arrived"
-        className="w-full bg-slate-700 border border-slate-600 rounded p-2 text-sm text-slate-100 outline-none focus:border-cyan-500"
+        className="w-full bg-white border border-[#e9ecef] rounded-[8px] p-2 text-sm text-[#1a1c1e] outline-none focus:border-[#002d72] focus:ring-1 focus:ring-[#002d72] transition-colors"
         disabled={isSubmitting}
       />
       <div className="flex gap-2">
         <button 
           type="submit" 
           disabled={isSubmitting}
-          className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-1 px-3 rounded transition-colors disabled:opacity-50 cursor-pointer"
+          className="bg-[#002d72] hover:bg-blue-900 text-white text-[11px] font-[Montserrat] font-bold uppercase tracking-tight py-1.5 px-3 rounded-[6px] transition-colors disabled:opacity-50 cursor-pointer shadow-sm hover:shadow-md"
         >
           {t.submit}
         </button>
@@ -63,7 +63,7 @@ const SubIssueForm = ({ requestId, setAllRequests, language }) => {
           type="button" 
           onClick={() => setIsOpen(false)}
           disabled={isSubmitting}
-          className="text-slate-400 hover:text-slate-300 text-xs font-bold cursor-pointer"
+          className="text-[#444651] hover:text-[#1a1c1e] text-[11px] font-[Montserrat] font-bold uppercase tracking-tight cursor-pointer"
         >
           {t.cancel}
         </button>

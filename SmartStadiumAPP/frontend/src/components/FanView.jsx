@@ -148,55 +148,55 @@ const FanView = ({ stadiumData }) => {
   };
 
   return (
-    <div className="w-full flex flex-col items-center py-8 px-4">
-      <div className="w-full max-w-5xl mb-8 flex flex-col items-center text-center">
+    <div className="w-full flex flex-col items-center py-8 px-4 animate-fade-in">
+      <div className="w-full max-w-5xl mb-8 flex flex-col items-center text-center animate-slide-up" style={{ animationDelay: '0.1s' }}>
         <div className="w-full flex justify-end mb-2">
           <select 
             value={language} 
             onChange={(e) => setLanguage(e.target.value)}
-            className="bg-slate-800/80 border border-slate-600 text-slate-200 text-sm rounded-lg px-3 py-1.5 outline-none focus:ring-2 focus:ring-cyan-500 backdrop-blur-sm shadow-lg"
+            className="bg-white border border-[#e9ecef] text-[#1a1c1e] text-sm rounded-[8px] px-3 py-1.5 outline-none focus:ring-2 focus:ring-[#002d72] shadow-sm transition-colors duration-200"
           >
             {Object.keys(UI_TRANSLATIONS).map(lang => (
               <option key={lang} value={lang}>{lang}</option>
             ))}
           </select>
         </div>
-        <h1 className="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600">
+        <h1 className="text-4xl md:text-5xl font-[Montserrat] font-black mb-4 tracking-tight text-[#002d72] uppercase">
           {t.title}
         </h1>
         
         {/* Simulated Time Display */}
-        <div className="flex items-center space-x-3 bg-slate-800/80 border border-slate-600 px-5 py-2.5 rounded-full mb-4 shadow-lg shadow-cyan-900/20 backdrop-blur-sm">
-          <div className="w-2.5 h-2.5 bg-rose-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.8)]"></div>
-          <p className="text-cyan-300 font-semibold tracking-wide text-sm md:text-base">
-            Simulated Time: <span className="text-white ml-1 font-bold">{stadiumData.time}</span>
+        <div className="flex items-center space-x-3 bg-white border border-[#e9ecef] px-5 py-2.5 rounded-full mb-4 shadow-sm hover:shadow-md transition-shadow duration-300">
+          <div className="w-2.5 h-2.5 bg-[#bc000c] rounded-full animate-pulse-glow"></div>
+          <p className="text-[#444651] font-[Montserrat] font-bold uppercase tracking-widest text-[10px] md:text-xs">
+            LIVE: <span className="text-[#1a1c1e] ml-1">{stadiumData.time}</span>
           </p>
         </div>
 
-        <p className="text-slate-400 text-lg">
+        <p className="text-[#444651] text-lg">
           {t.subtitle}
         </p>
       </div>
       
       {/* Fan Navigation and My Requests Layout Container */}
-      <div className="w-full max-w-5xl flex flex-col lg:flex-row gap-6 mb-8 items-start z-10 relative">
+      <div className="w-full max-w-5xl flex flex-col lg:flex-row gap-6 mb-8 items-start z-10 relative animate-slide-up" style={{ animationDelay: '0.2s' }}>
         {/* Fan Navigation Card */}
-        <div className="flex-1 w-full bg-slate-800/80 p-6 rounded-2xl shadow-xl border border-slate-700">
+        <div className="flex-1 w-full bg-white p-6 rounded-2xl shadow-sm border border-[#e9ecef] hover:shadow-md transition-shadow duration-300">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-            <h2 className="text-2xl font-bold text-cyan-400">{t.fanNav}</h2>
+            <h2 className="text-xl font-[Montserrat] font-bold text-[#002d72] uppercase tracking-tight">{t.fanNav}</h2>
             
             {/* Accessibility Toggle */}
-            <div className="mt-4 md:mt-0 flex items-center space-x-3 bg-slate-900/50 p-2 rounded-xl border border-slate-700">
-              <span className="text-sm text-slate-400 font-medium ml-2">{t.assistance}</span>
+            <div className="mt-4 md:mt-0 flex items-center space-x-3 bg-[#f9f9fc] p-1.5 rounded-[8px] border border-[#e9ecef]">
+              <span className="text-[11px] text-[#444651] font-[Montserrat] font-bold uppercase tracking-widest ml-2">{t.assistance}</span>
               <div className="flex space-x-1">
                 {accessibilityOptions.map(opt => (
                   <button
                     key={opt}
                     onClick={() => setAccessibilityNeed(opt)}
-                    className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-all ${
+                    className={`px-3 py-1.5 text-xs font-bold rounded-[6px] transition-colors duration-200 ${
                       accessibilityNeed === opt 
-                        ? 'bg-indigo-500 text-white shadow-md' 
-                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'
+                        ? 'bg-[#002d72] text-white shadow-sm' 
+                        : 'text-[#444651] hover:text-[#1a1c1e] hover:bg-[#e9ecef]/50'
                     }`}
                   >
                     {opt}
@@ -208,9 +208,9 @@ const FanView = ({ stadiumData }) => {
 
           <div className="flex flex-col md:flex-row gap-4 items-end">
             <div className="flex-1 w-full">
-              <label className="block text-sm font-medium text-slate-400 mb-2">{t.iAmAt}</label>
+              <label className="block text-[11px] font-[Montserrat] font-bold uppercase tracking-widest text-[#444651] mb-2">{t.iAmAt}</label>
               <select 
-                className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg p-3 outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
+                className="w-full bg-white border border-[#e9ecef] text-[#1a1c1e] rounded-[8px] p-3 outline-none focus:ring-2 focus:ring-[#002d72] transition-all"
                 value={fromZone}
                 onChange={(e) => setFromZone(e.target.value)}
               >
@@ -220,9 +220,9 @@ const FanView = ({ stadiumData }) => {
             </div>
             
             <div className="flex-1 w-full">
-              <label className="block text-sm font-medium text-slate-400 mb-2">{t.iWantToGoTo}</label>
+              <label className="block text-[11px] font-[Montserrat] font-bold uppercase tracking-widest text-[#444651] mb-2">{t.iWantToGoTo}</label>
               <select 
-                className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg p-3 outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
+                className="w-full bg-white border border-[#e9ecef] text-[#1a1c1e] rounded-[8px] p-3 outline-none focus:ring-2 focus:ring-[#002d72] transition-all"
                 value={toZone}
                 onChange={(e) => setToZone(e.target.value)}
               >
@@ -235,10 +235,10 @@ const FanView = ({ stadiumData }) => {
               <button 
                 onClick={handleGetDirections}
                 disabled={!fromZone || !toZone || isLoading}
-                className={`px-8 py-3 rounded-lg font-bold text-white transition-all shadow-lg w-full md:w-auto
+                className={`px-8 py-3 rounded-[8px] font-[Montserrat] font-bold uppercase tracking-tight text-white transition-all duration-300 shadow-sm w-full md:w-auto
                   ${(!fromZone || !toZone || isLoading) 
-                    ? 'bg-slate-600 cursor-not-allowed opacity-70' 
-                    : 'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 hover:shadow-cyan-500/25 hover:-translate-y-0.5'
+                    ? 'bg-[#e9ecef] text-[#444651] cursor-not-allowed border border-[#e9ecef]' 
+                    : 'bg-[#002d72] hover:bg-blue-900 hover:shadow-md hover:-translate-y-0.5'
                   }
                 `}
               >
@@ -247,7 +247,7 @@ const FanView = ({ stadiumData }) => {
               {/* Report Incident Button */}
               <button
                 onClick={openIncidentModal}
-                className="px-6 py-3 rounded-lg font-bold text-white transition-all shadow-lg w-full md:w-auto bg-red-600 hover:bg-red-500 hover:shadow-red-500/25 border border-red-500 hover:-translate-y-0.5"
+                className="px-6 py-3 rounded-[8px] font-[Montserrat] font-bold uppercase tracking-tight transition-all duration-300 shadow-sm w-full md:w-auto text-[#bc000c] bg-white hover:bg-red-50 border border-[#bc000c] hover:-translate-y-0.5"
               >
                 {t.reportIncident}
               </button>
@@ -257,10 +257,10 @@ const FanView = ({ stadiumData }) => {
                 <button
                   onClick={handleRequestHelp}
                   disabled={isRequestingHelp || !fromZone}
-                  className={`px-6 py-3 rounded-lg font-bold text-white transition-all shadow-lg w-full md:w-auto
+                  className={`px-6 py-3 rounded-[8px] font-[Montserrat] font-bold uppercase tracking-tight transition-all duration-300 shadow-sm w-full md:w-auto
                     ${(!fromZone || isRequestingHelp)
-                      ? 'bg-slate-700 text-slate-400 cursor-not-allowed border border-slate-600'
-                      : 'bg-rose-600 hover:bg-rose-500 hover:shadow-rose-500/25 border border-rose-500 hover:-translate-y-0.5'
+                      ? 'bg-white text-[#444651] cursor-not-allowed border border-[#e9ecef]'
+                      : 'text-[#bc000c] bg-white hover:bg-red-50 border border-[#bc000c] hover:-translate-y-0.5'
                     }
                   `}
                 >
@@ -272,10 +272,10 @@ const FanView = ({ stadiumData }) => {
           
           {/* Help Status Message */}
           {helpStatus && (
-            <div className={`mt-4 p-4 rounded-xl border text-sm font-medium ${
+            <div className={`mt-4 p-4 rounded-[8px] border text-sm font-medium ${
               helpStatus.includes('ETA') 
-                ? 'bg-emerald-900/40 border-emerald-500/50 text-emerald-400' 
-                : 'bg-amber-900/40 border-amber-500/50 text-amber-400'
+                ? 'bg-[#00a651]/10 border-[#00a651]/30 text-[#00a651]' 
+                : 'bg-[#bc000c]/10 border-[#bc000c]/30 text-[#bc000c]'
             }`}>
               {helpStatus}
             </div>
@@ -283,28 +283,28 @@ const FanView = ({ stadiumData }) => {
 
           {/* Directions Display Card */}
           {directions && (
-            <div className="mt-6 p-6 bg-slate-900 rounded-xl border border-slate-700 shadow-inner animate-fade-in text-slate-300 leading-relaxed whitespace-pre-wrap">
-              <h3 className="text-lg font-semibold text-emerald-400 mb-3">Your Route:</h3>
+            <div className="mt-6 p-6 bg-[#f9f9fc] rounded-[8px] border border-[#e9ecef] shadow-sm animate-fade-in text-[#1a1c1e] leading-relaxed whitespace-pre-wrap">
+              <h3 className="text-[12px] font-[Montserrat] font-bold uppercase tracking-widest text-[#002d72] mb-3">Your Route:</h3>
               {directions}
             </div>
           )}
         </div>
 
         {/* Collapsible Sidebar/Section for My Requests */}
-        <div className="w-full lg:w-80 shrink-0 bg-slate-800/80 border border-slate-700 rounded-2xl shadow-xl overflow-hidden">
+        <div className="w-full lg:w-80 shrink-0 bg-white border border-[#e9ecef] rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300">
           {/* Sidebar Header with Toggle */}
-          <div className="flex justify-between items-center p-4 border-b border-slate-700 bg-slate-900/50">
+          <div className="flex justify-between items-center p-4 border-b border-[#e9ecef] bg-[#f9f9fc]">
             <div className="flex items-center gap-2">
-              <span className="font-bold text-cyan-400">{t.myRequests}</span>
+              <span className="font-[Montserrat] font-bold text-[#002d72] uppercase tracking-tight">{t.myRequests}</span>
               {myRequestIds.length > 0 && (
-                <span className="bg-cyan-500/25 text-cyan-300 text-xs px-2 py-0.5 rounded-full font-bold border border-cyan-500/30">
+                <span className="bg-[#002d72]/10 text-[#002d72] text-[12px] px-2 py-0.5 rounded-[4px] font-bold border border-[#002d72]/20">
                   {myRequestIds.length}
                 </span>
               )}
             </div>
             <button
               onClick={() => setIsMyRequestsExpanded(!isMyRequestsExpanded)}
-              className="text-slate-400 hover:text-slate-200 transition-colors p-1 rounded hover:bg-slate-700/50 cursor-pointer focus:outline-none"
+              className="text-[#444651] hover:text-[#002d72] transition-colors p-1 rounded hover:bg-slate-100 cursor-pointer focus:outline-none"
               title={isMyRequestsExpanded ? 'Collapse' : 'Expand'}
             >
               <span className="text-sm font-mono">{isMyRequestsExpanded ? '▼' : '▶'}</span>
@@ -313,31 +313,31 @@ const FanView = ({ stadiumData }) => {
 
           {/* Sidebar Body */}
           {isMyRequestsExpanded && (
-            <div className="p-4 space-y-4 max-h-[500px] overflow-y-auto bg-slate-900/20">
+            <div className="p-4 space-y-4 max-h-[500px] overflow-y-auto bg-white">
               {myRequestIds.length === 0 ? (
-                <p className="text-sm text-slate-500 text-center py-4">{t.noRequests}</p>
+                <p className="text-sm text-[#444651] text-center py-4">{t.noRequests}</p>
               ) : (
                 myRequestIds.map(id => {
                   const req = allRequests.find(r => r.id === id);
                   if (!req) return null;
                   return (
-                    <div key={id} className="bg-slate-900/40 p-4 rounded-xl border border-slate-700 hover:border-slate-600 transition-colors shadow-sm">
+                    <div key={id} className="bg-white p-4 rounded-[8px] border border-[#e9ecef] hover:border-[#002d72]/30 transition-all duration-300 hover:shadow-md hover:-translate-y-1">
                       <div className="flex justify-between items-start mb-2">
-                        <span className="font-bold text-slate-200 text-sm">{t.help}: {req.need}</span>
-                        <span className={`px-2 py-0.5 text-[10px] font-bold rounded uppercase tracking-wider ${req.status === 'pending' ? 'bg-amber-900/50 text-amber-400 border border-amber-700/30' : 'bg-emerald-900/50 text-emerald-400 border border-emerald-700/30'}`}>
+                        <span className="font-[Montserrat] font-bold text-[#1a1c1e] text-sm">{t.help}: {req.need}</span>
+                        <span className={`px-2 py-0.5 text-[10px] font-bold rounded-[4px] uppercase tracking-wider transition-colors duration-300 ${req.status === 'pending' ? 'bg-[#bc000c]/10 text-[#bc000c] border border-[#bc000c]/20' : 'bg-[#00a651]/10 text-[#00a651] border border-[#00a651]/20'}`}>
                           {req.status}
                         </span>
                       </div>
-                      <div className="text-xs text-slate-400 mb-2 leading-relaxed">
-                        <div><span className="text-slate-500 font-medium">{t.from}:</span> {req.from}</div>
-                        {req.to && req.to !== 'Not specified' && <div><span className="text-slate-500 font-medium">{t.to}:</span> {req.to}</div>}
+                      <div className="text-xs text-[#444651] mb-2 leading-relaxed">
+                        <div><span className="text-[#1a1c1e] font-bold">{t.from}:</span> {req.from}</div>
+                        {req.to && req.to !== 'Not specified' && <div><span className="text-[#1a1c1e] font-bold">{t.to}:</span> {req.to}</div>}
                       </div>
                       
                       {req.subIssues && req.subIssues.length > 0 && (
-                        <div className="mt-2 pl-2.5 border-l-2 border-slate-600 space-y-2 mb-3">
+                        <div className="mt-2 pl-2.5 border-l-2 border-[#e9ecef] space-y-2 mb-3">
                           {req.subIssues.map((sub, idx) => (
-                            <div key={idx} className="text-xs text-slate-300">
-                              <span className="text-slate-500 text-[10px] mr-1.5 font-mono">{new Date(sub.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                            <div key={idx} className="text-xs text-[#444651]">
+                              <span className="text-[#1a1c1e] text-[10px] mr-1.5 font-bold">{new Date(sub.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                               {sub.note}
                             </div>
                           ))}
@@ -345,7 +345,7 @@ const FanView = ({ stadiumData }) => {
                       )}
                       
                       {req.status === 'pending' && (
-                        <div className="mt-2 pt-2 border-t border-slate-700/50">
+                        <div className="mt-2 pt-2 border-t border-[#e9ecef]">
                           <SubIssueForm requestId={req.id} setAllRequests={setAllRequests} language={language} />
                         </div>
                       )}
@@ -366,11 +366,11 @@ const FanView = ({ stadiumData }) => {
         ${selectedBox ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-4 scale-95 pointer-events-none'}
       `}>
         {selectedBox && (
-          <div className="mt-8 px-8 py-5 bg-slate-800 rounded-2xl shadow-xl border border-slate-600 flex items-center space-x-4">
-            <div className="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></div>
-            <p className="text-xl md:text-2xl font-semibold">
-              <span className="text-slate-400 mr-2">Selected Zone:</span> 
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">
+          <div className="mt-8 px-8 py-5 bg-white rounded-2xl shadow-lg border border-[#e9ecef] flex items-center space-x-4">
+            <div className="w-3 h-3 rounded-full bg-[#00a651] animate-pulse-glow"></div>
+            <p className="text-xl md:text-2xl font-[Montserrat] font-bold">
+              <span className="text-[#444651] mr-2">Selected Zone:</span> 
+              <span className="text-[#002d72]">
                 {selectedBox}
               </span>
             </p>
@@ -379,18 +379,18 @@ const FanView = ({ stadiumData }) => {
       </div>
       {/* Incident Modal */}
       {isIncidentModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 shadow-2xl w-full max-w-md relative">
-            <h2 className="text-2xl font-bold text-red-400 mb-4 flex items-center gap-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1a1c1e]/40 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-white border border-[#e9ecef] rounded-2xl p-6 shadow-2xl w-full max-w-md relative animate-slide-up">
+            <h2 className="text-2xl font-[Montserrat] font-bold text-[#bc000c] mb-4 flex items-center gap-2 uppercase tracking-tight">
               <span>⚠️</span> Report Incident
             </h2>
             <form onSubmit={handleReportIncident} className="flex flex-col gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-1">Incident Type</label>
+                <label className="block text-[11px] font-[Montserrat] font-bold uppercase tracking-widest text-[#444651] mb-1">Incident Type</label>
                 <select
                   value={incidentType}
                   onChange={(e) => setIncidentType(e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 text-white rounded p-2.5 outline-none focus:border-red-500"
+                  className="w-full bg-white border border-[#e9ecef] text-[#1a1c1e] rounded-[8px] p-2.5 outline-none focus:border-[#002d72] focus:ring-1 focus:ring-[#002d72] transition-colors"
                 >
                   <option value="Medical">Medical</option>
                   <option value="Security">Security</option>
@@ -400,11 +400,11 @@ const FanView = ({ stadiumData }) => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-1">Location / Zone</label>
+                <label className="block text-[11px] font-[Montserrat] font-bold uppercase tracking-widest text-[#444651] mb-1">Location / Zone</label>
                 <select
                   value={incidentZone}
                   onChange={(e) => setIncidentZone(e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 text-white rounded p-2.5 outline-none focus:border-red-500"
+                  className="w-full bg-white border border-[#e9ecef] text-[#1a1c1e] rounded-[8px] p-2.5 outline-none focus:border-[#002d72] focus:ring-1 focus:ring-[#002d72] transition-colors"
                 >
                   <option value="">Select location...</option>
                   {locations.map(loc => <option key={`inc-${loc.id}`} value={loc.name}>{loc.name}</option>)}
@@ -412,13 +412,13 @@ const FanView = ({ stadiumData }) => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-1">Additional Note (Optional)</label>
+                <label className="block text-[11px] font-[Montserrat] font-bold uppercase tracking-widest text-[#444651] mb-1">Additional Note (Optional)</label>
                 <input
                   type="text"
                   value={incidentNote}
                   onChange={(e) => setIncidentNote(e.target.value)}
                   placeholder="e.g., Someone fell, need help"
-                  className="w-full bg-slate-800 border border-slate-700 text-white rounded p-2.5 outline-none focus:border-red-500"
+                  className="w-full bg-white border border-[#e9ecef] text-[#1a1c1e] rounded-[8px] p-2.5 outline-none focus:border-[#002d72] focus:ring-1 focus:ring-[#002d72] transition-colors"
                 />
               </div>
 
@@ -426,7 +426,7 @@ const FanView = ({ stadiumData }) => {
                 <button
                   type="submit"
                   disabled={isSubmittingIncident}
-                  className="flex-1 bg-red-600 hover:bg-red-500 disabled:bg-slate-700 text-white font-bold py-2.5 rounded transition-all cursor-pointer"
+                  className="flex-1 bg-[#bc000c] hover:bg-red-800 disabled:bg-[#e9ecef] disabled:text-[#444651] text-white font-[Montserrat] font-bold uppercase tracking-tight py-2.5 rounded-[8px] transition-all cursor-pointer shadow-sm hover:shadow-md hover:-translate-y-0.5"
                 >
                   {isSubmittingIncident ? 'Submitting...' : 'Submit Report'}
                 </button>
@@ -434,7 +434,7 @@ const FanView = ({ stadiumData }) => {
                   type="button"
                   onClick={() => setIsIncidentModalOpen(false)}
                   disabled={isSubmittingIncident}
-                  className="px-4 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white font-bold rounded transition-all cursor-pointer"
+                  className="px-4 bg-white hover:bg-[#f9f9fc] border border-[#e9ecef] text-[#444651] font-[Montserrat] font-bold uppercase tracking-tight rounded-[8px] transition-all cursor-pointer shadow-sm hover:shadow-md hover:-translate-y-0.5"
                 >
                   Cancel
                 </button>

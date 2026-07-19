@@ -28,5 +28,15 @@
     "severity": "high",
     "status": "resolved",
     "suggestedResponse": "Dispatch medical personnel to Gate A immediately to assess the situation and provide necessary aid. Ensure nearby stadium staff keep the immediate area clear to facilitate access for responders and maintain crowd flow."
+  },
+  {
+    "id": "1784482808050",
+    "timestamp": "2026-07-19T17:40:08.051Z",
+    "zone": "Section 100",
+    "type": "Medical",
+    "note": "",
+    "severity": "high",
+    "status": "open",
+    "suggestedResponse": "Dispatch a medical response team to Section 100 immediately to assess the situation. Security personnel should assist in clearing a path through the area to ensure the medical team has unobstructed access."
   }
 ]

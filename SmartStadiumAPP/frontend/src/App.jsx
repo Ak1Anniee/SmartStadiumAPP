@@ -26,23 +26,25 @@ function App() {
   }, [isOrganizerRoute, isFanRoute]);
 
   if (!isOrganizerRoute && !isFanRoute) {
-    return <LandingPage />;
+    return (
+      <div className="animate-fade-in">
+        <LandingPage />
+      </div>
+    );
   }
 
   return (
-    <div className="w-full min-h-screen bg-slate-950 flex flex-col font-sans text-slate-100 overflow-hidden">
+    <div className="w-full min-h-screen bg-[#f9f9fc] flex flex-col font-sans text-[#1a1c1e] overflow-hidden animate-fade-in">
       {/* Global Navigation Bar */}
-      <nav className="bg-slate-900 border-b border-slate-800 p-4 shadow-md flex justify-between items-center z-50 relative shrink-0">
-        <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center font-bold text-white shadow-lg">
-            S
-          </div>
-          <span className="text-xl font-bold tracking-wider text-slate-100">Smart Stadium</span>
+      <nav className="bg-[#002d72] border-b border-[#001a48] p-4 shadow-md flex justify-between items-center z-50 relative shrink-0 transition-colors duration-300">
+        <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity duration-200 cursor-pointer">
+          <img src="/assets/logo.png" alt="Stadium Elite Logo" className="w-8 h-8 md:w-10 md:h-10 object-contain drop-shadow-sm" onError={(e) => { e.target.style.display = 'none'; }} />
+          <span className="text-xl md:text-2xl font-[Montserrat] font-bold tracking-tight text-white uppercase">Stadium Elite</span>
         </a>
       </nav>
       
       {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto animate-slide-up bg-[#f9f9fc]">
         {isOrganizerRoute ? (
           <OrganizerDashboard stadiumData={stadiumData} />
         ) : (
