@@ -206,7 +206,7 @@ const FanView = ({ stadiumData }) => {
             </div>
           </div>
 
-          <div className="flex flex-col md:flex-row gap-4 items-end">
+          <div className="flex flex-col md:flex-row gap-6 mb-6">
             <div className="flex-1 w-full">
               <label className="block text-[11px] font-[Montserrat] font-bold uppercase tracking-widest text-[#444651] mb-2">{t.iAmAt}</label>
               <select 
@@ -230,44 +230,44 @@ const FanView = ({ stadiumData }) => {
                 {locations.map(loc => <option key={`to-${loc.id}`} value={loc.name}>{loc.name}</option>)}
               </select>
             </div>
+          </div>
             
-            <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
-              <button 
-                onClick={handleGetDirections}
-                disabled={!fromZone || !toZone || isLoading}
-                className={`px-8 py-3 rounded-[8px] font-[Montserrat] font-bold uppercase tracking-tight text-white transition-all duration-300 shadow-sm w-full md:w-auto
-                  ${(!fromZone || !toZone || isLoading) 
-                    ? 'bg-[#e9ecef] text-[#444651] cursor-not-allowed border border-[#e9ecef]' 
-                    : 'bg-[#002d72] hover:bg-blue-900 hover:shadow-md hover:-translate-y-0.5'
+          <div className="flex flex-col sm:flex-row flex-wrap gap-4 w-full">
+            <button 
+              onClick={handleGetDirections}
+              disabled={!fromZone || !toZone || isLoading}
+              className={`px-8 py-3 rounded-[8px] font-[Montserrat] font-bold uppercase tracking-tight text-white transition-all duration-300 shadow-sm flex-1 min-w-[200px] whitespace-nowrap
+                ${(!fromZone || !toZone || isLoading) 
+                  ? 'bg-[#e9ecef] text-[#444651] cursor-not-allowed border border-[#e9ecef]' 
+                  : 'bg-[#002d72] hover:bg-blue-900 hover:shadow-md hover:-translate-y-0.5'
+                }
+              `}
+            >
+              {isLoading ? t.calculating : t.getDirections}
+            </button>
+            {/* Report Incident Button */}
+            <button
+              onClick={openIncidentModal}
+              className="px-6 py-3 rounded-[8px] font-[Montserrat] font-bold uppercase tracking-tight transition-all duration-300 shadow-sm flex-1 min-w-[200px] whitespace-nowrap text-[#bc000c] bg-white hover:bg-red-50 border border-[#bc000c] hover:-translate-y-0.5"
+            >
+              {t.reportIncident}
+            </button>
+            
+            {/* Request Staff Help Button */}
+            {accessibilityNeed !== 'None' && (
+              <button
+                onClick={handleRequestHelp}
+                disabled={isRequestingHelp || !fromZone}
+                className={`px-6 py-3 rounded-[8px] font-[Montserrat] font-bold uppercase tracking-tight transition-all duration-300 shadow-sm flex-1 min-w-[200px] whitespace-nowrap
+                  ${(!fromZone || isRequestingHelp)
+                    ? 'bg-white text-[#444651] cursor-not-allowed border border-[#e9ecef]'
+                    : 'text-[#bc000c] bg-white hover:bg-red-50 border border-[#bc000c] hover:-translate-y-0.5'
                   }
                 `}
               >
-                {isLoading ? t.calculating : t.getDirections}
+                {isRequestingHelp ? t.requesting : t.requestHelp}
               </button>
-              {/* Report Incident Button */}
-              <button
-                onClick={openIncidentModal}
-                className="px-6 py-3 rounded-[8px] font-[Montserrat] font-bold uppercase tracking-tight transition-all duration-300 shadow-sm w-full md:w-auto text-[#bc000c] bg-white hover:bg-red-50 border border-[#bc000c] hover:-translate-y-0.5"
-              >
-                {t.reportIncident}
-              </button>
-              
-              {/* Request Staff Help Button */}
-              {accessibilityNeed !== 'None' && (
-                <button
-                  onClick={handleRequestHelp}
-                  disabled={isRequestingHelp || !fromZone}
-                  className={`px-6 py-3 rounded-[8px] font-[Montserrat] font-bold uppercase tracking-tight transition-all duration-300 shadow-sm w-full md:w-auto
-                    ${(!fromZone || isRequestingHelp)
-                      ? 'bg-white text-[#444651] cursor-not-allowed border border-[#e9ecef]'
-                      : 'text-[#bc000c] bg-white hover:bg-red-50 border border-[#bc000c] hover:-translate-y-0.5'
-                    }
-                  `}
-                >
-                  {isRequestingHelp ? t.requesting : t.requestHelp}
-                </button>
-              )}
-            </div>
+            )}
           </div>
           
           {/* Help Status Message */}
