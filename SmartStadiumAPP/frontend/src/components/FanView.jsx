@@ -40,7 +40,7 @@ const FanView = ({ stadiumData }) => {
     const fetchRequests = async () => {
       if (myRequestIdsRef.current.length === 0 || !isMyRequestsExpandedRef.current) return;
       try {
-        const response = await fetch('http://localhost:3000/api/requests');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/requests`);
         const data = await response.json();
         setAllRequests(data);
       } catch (err) {
@@ -61,7 +61,7 @@ const FanView = ({ stadiumData }) => {
     setHelpStatus('');
 
     try {
-      const response = await fetch('http://localhost:3000/api/navigation', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/navigation`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ from: fromZone, to: toZone, accessibilityNeed, language })
@@ -89,7 +89,7 @@ const FanView = ({ stadiumData }) => {
     setHelpStatus('');
 
     try {
-      const response = await fetch('http://localhost:3000/api/request-help', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/request-help`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ from: fromZone, to: toZone, need: accessibilityNeed, language })
@@ -122,7 +122,7 @@ const FanView = ({ stadiumData }) => {
     setHelpStatus('');
 
     try {
-      const response = await fetch('http://localhost:3000/api/incidents', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/incidents`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ zone: incidentZone, type: incidentType, note: incidentNote, language })

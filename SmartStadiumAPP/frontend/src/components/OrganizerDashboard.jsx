@@ -29,7 +29,7 @@ const OrganizerDashboard = ({ stadiumData }) => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
       
-      const response = await fetch('http://localhost:3000/api/ai-insights', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/ai-insights`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ stadiumData: currentStadiumData, requests: currentRequests }),
@@ -64,7 +64,7 @@ const OrganizerDashboard = ({ stadiumData }) => {
   useEffect(() => {
     const fetchRequests = async () => {
       try {
-        const response = await fetch('http://localhost:3000/api/requests');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/requests`);
         const data = await response.json();
         setRequests(data);
       } catch (err) {
@@ -74,7 +74,7 @@ const OrganizerDashboard = ({ stadiumData }) => {
     
     const fetchIncidents = async () => {
       try {
-        const response = await fetch('http://localhost:3000/api/incidents');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/incidents`);
         const data = await response.json();
         setIncidents(data);
       } catch (err) {
@@ -94,7 +94,7 @@ const OrganizerDashboard = ({ stadiumData }) => {
 
   const handleResolve = async (id) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/requests/${id}/resolve`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/requests/${id}/resolve`, {
         method: 'PUT'
       });
       if (response.ok) {
@@ -107,7 +107,7 @@ const OrganizerDashboard = ({ stadiumData }) => {
 
   const handleResolveIncident = async (id) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/incidents/${id}/resolve`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/incidents/${id}/resolve`, {
         method: 'PUT'
       });
       if (response.ok) {

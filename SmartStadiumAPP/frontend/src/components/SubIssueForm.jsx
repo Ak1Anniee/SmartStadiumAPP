@@ -12,7 +12,7 @@ const SubIssueForm = ({ requestId, setAllRequests, language }) => {
     if (!note.trim()) return;
     setIsSubmitting(true);
     try {
-      const response = await fetch(`http://localhost:3000/api/requests/${requestId}/subissue`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/requests/${requestId}/subissue`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ note })

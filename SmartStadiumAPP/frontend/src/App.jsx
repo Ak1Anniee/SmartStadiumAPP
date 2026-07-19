@@ -13,7 +13,7 @@ function App() {
 
     const fetchStadiumData = async () => {
       try {
-        const response = await fetch('http://localhost:3000/api/stadium-data');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/stadium-data`);
         const data = await response.json();
         setStadiumData(data);
       } catch (err) {
