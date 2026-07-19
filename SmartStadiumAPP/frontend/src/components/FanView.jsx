@@ -1,5 +1,75 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import MapGrid, { locations } from './MapGrid';
+
+const SubIssueForm = ({ requestId, setAllRequests }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [note, setNote] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!note.trim()) return;
+    setIsSubmitting(true);
+    try {
+      const response = await fetch(`http://localhost:3000/api/requests/${requestId}/subissue`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ note })
+      });
+      if (response.ok) {
+        const updatedReq = await response.json();
+        setAllRequests(prev => prev.map(r => r.id === requestId ? updatedReq : r));
+        setNote('');
+        setIsOpen(false);
+      }
+    } catch (err) {
+      console.error('Failed to submit sub-issue');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (!isOpen) {
+    return (
+      <button 
+        onClick={() => setIsOpen(true)}
+        className="text-xs font-bold text-cyan-400 hover:text-cyan-300 underline cursor-pointer"
+      >
+        Raise Sub-issue
+      </button>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="mt-2 flex flex-col gap-2">
+      <input
+        type="text"
+        value={note}
+        onChange={e => setNote(e.target.value)}
+        placeholder="e.g., still no one has arrived"
+        className="w-full bg-slate-700 border border-slate-600 rounded p-2 text-sm text-slate-100 outline-none focus:border-cyan-500"
+        disabled={isSubmitting}
+      />
+      <div className="flex gap-2">
+        <button 
+          type="submit" 
+          disabled={isSubmitting}
+          className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-1 px-3 rounded transition-colors disabled:opacity-50 cursor-pointer"
+        >
+          Submit
+        </button>
+        <button 
+          type="button" 
+          onClick={() => setIsOpen(false)}
+          disabled={isSubmitting}
+          className="text-slate-400 hover:text-slate-300 text-xs font-bold cursor-pointer"
+        >
+          Cancel
+        </button>
+      </div>
+    </form>
+  );
+};
 
 const FanView = ({ stadiumData }) => {
   const [selectedBox, setSelectedBox] = useState(null);
@@ -10,6 +80,26 @@ const FanView = ({ stadiumData }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [helpStatus, setHelpStatus] = useState('');
   const [isRequestingHelp, setIsRequestingHelp] = useState(false);
+  
+  const [myRequestIds, setMyRequestIds] = useState([]);
+  const [allRequests, setAllRequests] = useState([]);
+  const [isMyRequestsExpanded, setIsMyRequestsExpanded] = useState(true);
+
+  useEffect(() => {
+    const fetchRequests = async () => {
+      if (myRequestIds.length === 0) return;
+      try {
+        const response = await fetch('http://localhost:3000/api/requests');
+        const data = await response.json();
+        setAllRequests(data);
+      } catch (err) {
+        console.error('Failed to fetch requests in FanView');
+      }
+    };
+    fetchRequests();
+    const interval = setInterval(fetchRequests, 2000);
+    return () => clearInterval(interval);
+  }, [myRequestIds.length]);
 
   const accessibilityOptions = ['None', 'Wheelchair', 'Elderly', 'Visual', 'Hearing'];
 
@@ -56,6 +146,10 @@ const FanView = ({ stadiumData }) => {
       const data = await response.json();
       if (data.message) {
         setHelpStatus(data.message);
+        if (data.request && data.request.id) {
+          setMyRequestIds(prev => [...prev, data.request.id]);
+          setAllRequests(prev => [data.request, ...prev]);
+        }
       } else {
         setHelpStatus('Error saving request.');
       }
@@ -86,108 +180,179 @@ const FanView = ({ stadiumData }) => {
         </p>
       </div>
       
-      {/* Fan Navigation Panel */}
-      <div className="w-full max-w-5xl bg-slate-800/80 p-6 rounded-2xl shadow-xl border border-slate-700 mb-8 z-10 relative">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-          <h2 className="text-2xl font-bold text-cyan-400">Fan Navigation</h2>
-          
-          {/* Accessibility Toggle */}
-          <div className="mt-4 md:mt-0 flex items-center space-x-3 bg-slate-900/50 p-2 rounded-xl border border-slate-700">
-            <span className="text-sm text-slate-400 font-medium ml-2">Assistance:</span>
-            <div className="flex space-x-1">
-              {accessibilityOptions.map(opt => (
-                <button
-                  key={opt}
-                  onClick={() => setAccessibilityNeed(opt)}
-                  className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-all ${
-                    accessibilityNeed === opt 
-                      ? 'bg-indigo-500 text-white shadow-md' 
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'
-                  }`}
-                >
-                  {opt}
-                </button>
-              ))}
+      {/* Fan Navigation and My Requests Layout Container */}
+      <div className="w-full max-w-5xl flex flex-col lg:flex-row gap-6 mb-8 items-start z-10 relative">
+        {/* Fan Navigation Card */}
+        <div className="flex-1 w-full bg-slate-800/80 p-6 rounded-2xl shadow-xl border border-slate-700">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+            <h2 className="text-2xl font-bold text-cyan-400">Fan Navigation</h2>
+            
+            {/* Accessibility Toggle */}
+            <div className="mt-4 md:mt-0 flex items-center space-x-3 bg-slate-900/50 p-2 rounded-xl border border-slate-700">
+              <span className="text-sm text-slate-400 font-medium ml-2">Assistance:</span>
+              <div className="flex space-x-1">
+                {accessibilityOptions.map(opt => (
+                  <button
+                    key={opt}
+                    onClick={() => setAccessibilityNeed(opt)}
+                    className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-all ${
+                      accessibilityNeed === opt 
+                        ? 'bg-indigo-500 text-white shadow-md' 
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'
+                    }`}
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="flex flex-col md:flex-row gap-4 items-end">
-          <div className="flex-1 w-full">
-            <label className="block text-sm font-medium text-slate-400 mb-2">I am at</label>
-            <select 
-              className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg p-3 outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
-              value={fromZone}
-              onChange={(e) => setFromZone(e.target.value)}
-            >
-              <option value="">Select starting point...</option>
-              {locations.map(loc => <option key={`from-${loc.id}`} value={loc.name}>{loc.name}</option>)}
-            </select>
-          </div>
-          
-          <div className="flex-1 w-full">
-            <label className="block text-sm font-medium text-slate-400 mb-2">I want to go to</label>
-            <select 
-              className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg p-3 outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
-              value={toZone}
-              onChange={(e) => setToZone(e.target.value)}
-            >
-              <option value="">Select destination...</option>
-              {locations.map(loc => <option key={`to-${loc.id}`} value={loc.name}>{loc.name}</option>)}
-            </select>
-          </div>
-          
-          <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
-            <button 
-              onClick={handleGetDirections}
-              disabled={!fromZone || !toZone || isLoading}
-              className={`px-8 py-3 rounded-lg font-bold text-white transition-all shadow-lg w-full md:w-auto
-                ${(!fromZone || !toZone || isLoading) 
-                  ? 'bg-slate-600 cursor-not-allowed opacity-70' 
-                  : 'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 hover:shadow-cyan-500/25 hover:-translate-y-0.5'
-                }
-              `}
-            >
-              {isLoading ? 'Calculating...' : 'Get Directions'}
-            </button>
+          <div className="flex flex-col md:flex-row gap-4 items-end">
+            <div className="flex-1 w-full">
+              <label className="block text-sm font-medium text-slate-400 mb-2">I am at</label>
+              <select 
+                className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg p-3 outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
+                value={fromZone}
+                onChange={(e) => setFromZone(e.target.value)}
+              >
+                <option value="">Select starting point...</option>
+                {locations.map(loc => <option key={`from-${loc.id}`} value={loc.name}>{loc.name}</option>)}
+              </select>
+            </div>
             
-            {/* Request Staff Help Button */}
-            {accessibilityNeed !== 'None' && (
-              <button
-                onClick={handleRequestHelp}
-                disabled={isRequestingHelp || !fromZone}
-                className={`px-6 py-3 rounded-lg font-bold text-white transition-all shadow-lg w-full md:w-auto
-                  ${(!fromZone || isRequestingHelp)
-                    ? 'bg-slate-700 text-slate-400 cursor-not-allowed border border-slate-600'
-                    : 'bg-rose-600 hover:bg-rose-500 hover:shadow-rose-500/25 border border-rose-500 hover:-translate-y-0.5'
+            <div className="flex-1 w-full">
+              <label className="block text-sm font-medium text-slate-400 mb-2">I want to go to</label>
+              <select 
+                className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg p-3 outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
+                value={toZone}
+                onChange={(e) => setToZone(e.target.value)}
+              >
+                <option value="">Select destination...</option>
+                {locations.map(loc => <option key={`to-${loc.id}`} value={loc.name}>{loc.name}</option>)}
+              </select>
+            </div>
+            
+            <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+              <button 
+                onClick={handleGetDirections}
+                disabled={!fromZone || !toZone || isLoading}
+                className={`px-8 py-3 rounded-lg font-bold text-white transition-all shadow-lg w-full md:w-auto
+                  ${(!fromZone || !toZone || isLoading) 
+                    ? 'bg-slate-600 cursor-not-allowed opacity-70' 
+                    : 'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 hover:shadow-cyan-500/25 hover:-translate-y-0.5'
                   }
                 `}
               >
-                {isRequestingHelp ? 'Requesting...' : 'Request Staff Help'}
+                {isLoading ? 'Calculating...' : 'Get Directions'}
               </button>
-            )}
+              
+              {/* Request Staff Help Button */}
+              {accessibilityNeed !== 'None' && (
+                <button
+                  onClick={handleRequestHelp}
+                  disabled={isRequestingHelp || !fromZone}
+                  className={`px-6 py-3 rounded-lg font-bold text-white transition-all shadow-lg w-full md:w-auto
+                    ${(!fromZone || isRequestingHelp)
+                      ? 'bg-slate-700 text-slate-400 cursor-not-allowed border border-slate-600'
+                      : 'bg-rose-600 hover:bg-rose-500 hover:shadow-rose-500/25 border border-rose-500 hover:-translate-y-0.5'
+                    }
+                  `}
+                >
+                  {isRequestingHelp ? 'Requesting...' : 'Request Staff Help'}
+                </button>
+              )}
+            </div>
           </div>
-        </div>
-        
-        {/* Help Status Message */}
-        {helpStatus && (
-          <div className={`mt-4 p-4 rounded-xl border text-sm font-medium ${
-            helpStatus.includes('ETA') 
-              ? 'bg-emerald-900/40 border-emerald-500/50 text-emerald-400' 
-              : 'bg-amber-900/40 border-amber-500/50 text-amber-400'
-          }`}>
-            {helpStatus}
-          </div>
-        )}
+          
+          {/* Help Status Message */}
+          {helpStatus && (
+            <div className={`mt-4 p-4 rounded-xl border text-sm font-medium ${
+              helpStatus.includes('ETA') 
+                ? 'bg-emerald-900/40 border-emerald-500/50 text-emerald-400' 
+                : 'bg-amber-900/40 border-amber-500/50 text-amber-400'
+            }`}>
+              {helpStatus}
+            </div>
+          )}
 
-        {/* Directions Display Card */}
-        {directions && (
-          <div className="mt-6 p-6 bg-slate-900 rounded-xl border border-slate-700 shadow-inner animate-fade-in text-slate-300 leading-relaxed whitespace-pre-wrap">
-            <h3 className="text-lg font-semibold text-emerald-400 mb-3">Your Route:</h3>
-            {directions}
+          {/* Directions Display Card */}
+          {directions && (
+            <div className="mt-6 p-6 bg-slate-900 rounded-xl border border-slate-700 shadow-inner animate-fade-in text-slate-300 leading-relaxed whitespace-pre-wrap">
+              <h3 className="text-lg font-semibold text-emerald-400 mb-3">Your Route:</h3>
+              {directions}
+            </div>
+          )}
+        </div>
+
+        {/* Collapsible Sidebar/Section for My Requests */}
+        <div className="w-full lg:w-80 shrink-0 bg-slate-800/80 border border-slate-700 rounded-2xl shadow-xl overflow-hidden">
+          {/* Sidebar Header with Toggle */}
+          <div className="flex justify-between items-center p-4 border-b border-slate-700 bg-slate-900/50">
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-cyan-400">My Requests</span>
+              {myRequestIds.length > 0 && (
+                <span className="bg-cyan-500/25 text-cyan-300 text-xs px-2 py-0.5 rounded-full font-bold border border-cyan-500/30">
+                  {myRequestIds.length}
+                </span>
+              )}
+            </div>
+            <button
+              onClick={() => setIsMyRequestsExpanded(!isMyRequestsExpanded)}
+              className="text-slate-400 hover:text-slate-200 transition-colors p-1 rounded hover:bg-slate-700/50 cursor-pointer focus:outline-none"
+              title={isMyRequestsExpanded ? 'Collapse' : 'Expand'}
+            >
+              <span className="text-sm font-mono">{isMyRequestsExpanded ? '▼' : '▶'}</span>
+            </button>
           </div>
-        )}
+
+          {/* Sidebar Body */}
+          {isMyRequestsExpanded && (
+            <div className="p-4 space-y-4 max-h-[500px] overflow-y-auto bg-slate-900/20">
+              {myRequestIds.length === 0 ? (
+                <p className="text-sm text-slate-500 text-center py-4">No requests submitted in this session.</p>
+              ) : (
+                myRequestIds.map(id => {
+                  const req = allRequests.find(r => r.id === id);
+                  if (!req) return null;
+                  return (
+                    <div key={id} className="bg-slate-900/40 p-4 rounded-xl border border-slate-700 hover:border-slate-600 transition-colors shadow-sm">
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="font-bold text-slate-200 text-sm">Help: {req.need}</span>
+                        <span className={`px-2 py-0.5 text-[10px] font-bold rounded uppercase tracking-wider ${req.status === 'pending' ? 'bg-amber-900/50 text-amber-400 border border-amber-700/30' : 'bg-emerald-900/50 text-emerald-400 border border-emerald-700/30'}`}>
+                          {req.status}
+                        </span>
+                      </div>
+                      <div className="text-xs text-slate-400 mb-2 leading-relaxed">
+                        <div><span className="text-slate-500 font-medium">From:</span> {req.from}</div>
+                        {req.to && req.to !== 'Not specified' && <div><span className="text-slate-500 font-medium">To:</span> {req.to}</div>}
+                      </div>
+                      
+                      {req.subIssues && req.subIssues.length > 0 && (
+                        <div className="mt-2 pl-2.5 border-l-2 border-slate-600 space-y-2 mb-3">
+                          {req.subIssues.map((sub, idx) => (
+                            <div key={idx} className="text-xs text-slate-300">
+                              <span className="text-slate-500 text-[10px] mr-1.5 font-mono">{new Date(sub.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                              {sub.note}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      
+                      {req.status === 'pending' && (
+                        <div className="mt-2 pt-2 border-t border-slate-700/50">
+                          <SubIssueForm requestId={req.id} setAllRequests={setAllRequests} />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          )}
+        </div>
       </div>
+
 
       <MapGrid stadiumData={stadiumData} onSelectBox={setSelectedBox} />
 

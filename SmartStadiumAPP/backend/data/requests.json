@@ -30,5 +30,19 @@
     "to": "Food Court 2",
     "need": "Elderly",
     "status": "resolved"
+  },
+  {
+    "id": "1784454331972",
+    "timestamp": "2026-07-19T09:45:31.972Z",
+    "from": "Gate C",
+    "to": "Food Court 2",
+    "need": "Visual",
+    "status": "resolved",
+    "subIssues": [
+      {
+        "timestamp": "2026-07-19T09:45:45.739Z",
+        "note": "no one"
+      }
+    ]
   }
 ]

@@ -139,16 +139,44 @@ app.post('/api/request-help', async (req, res) => {
       from,
       to: to || 'Not specified',
       need,
-      status: 'pending'
+      status: 'pending',
+      subIssues: []
     };
 
     requests.push(newRequest);
     await fs.writeFile(filePath, JSON.stringify(requests, null, 2));
 
-    res.json({ message: 'Staff notified, ETA 3 minutes.' });
+    res.json({ message: 'Staff notified, ETA 3 minutes.', request: newRequest });
   } catch (error) {
     console.error('Error saving request:', error);
     res.status(500).json({ error: 'Failed to save staff request' });
+  }
+});
+
+app.post('/api/requests/:id/subissue', async (req, res) => {
+  const { note } = req.body;
+  if (!note) return res.status(400).json({ error: 'Missing note parameter' });
+
+  try {
+    const filePath = './data/requests.json';
+    const data = await fs.readFile(filePath, 'utf8');
+    const requests = JSON.parse(data);
+    
+    const index = requests.findIndex(r => r.id === req.params.id);
+    if (index !== -1) {
+      if (!requests[index].subIssues) requests[index].subIssues = [];
+      requests[index].subIssues.push({
+        timestamp: new Date().toISOString(),
+        note
+      });
+      await fs.writeFile(filePath, JSON.stringify(requests, null, 2));
+      res.json(requests[index]);
+    } else {
+      res.status(404).json({ error: 'Request not found' });
+    }
+  } catch (error) {
+    console.error('Error adding subissue:', error);
+    res.status(500).json({ error: 'Failed to add subissue' });
   }
 });
 
