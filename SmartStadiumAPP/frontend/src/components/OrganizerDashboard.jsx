@@ -40,6 +40,7 @@ const SubIssuesList = ({ subIssues }) => {
 
 const OrganizerDashboard = ({ stadiumData }) => {
   const [requests, setRequests] = useState([]);
+  const [incidents, setIncidents] = useState([]);
   const [insights, setInsights] = useState(null);
   const [isFetchingInsights, setIsFetchingInsights] = useState(false);
   const [insightError, setInsightError] = useState(null);
@@ -83,7 +84,7 @@ const OrganizerDashboard = ({ stadiumData }) => {
 
   useEffect(() => {
     const timeout = setTimeout(fetchInsights, 1000);
-    const interval = setInterval(fetchInsights, 10000);
+    const interval = setInterval(fetchInsights, 45000);
     return () => {
       clearTimeout(timeout);
       clearInterval(interval);
@@ -100,8 +101,24 @@ const OrganizerDashboard = ({ stadiumData }) => {
         console.error('Failed to fetch requests');
       }
     };
+    
+    const fetchIncidents = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/api/incidents');
+        const data = await response.json();
+        setIncidents(data);
+      } catch (err) {
+        console.error('Failed to fetch incidents');
+      }
+    };
+
     fetchRequests();
-    const interval = setInterval(fetchRequests, 2000);
+    fetchIncidents();
+    
+    const interval = setInterval(() => {
+      fetchRequests();
+      fetchIncidents();
+    }, 2000);
     return () => clearInterval(interval);
   }, []);
 
@@ -115,6 +132,19 @@ const OrganizerDashboard = ({ stadiumData }) => {
       }
     } catch (err) {
       console.error('Failed to resolve request', err);
+    }
+  };
+
+  const handleResolveIncident = async (id) => {
+    try {
+      const response = await fetch(`http://localhost:3000/api/incidents/${id}/resolve`, {
+        method: 'PUT'
+      });
+      if (response.ok) {
+        setIncidents(prev => prev.map(inc => inc.id === id ? { ...inc, status: 'resolved' } : inc));
+      }
+    } catch (err) {
+      console.error('Failed to resolve incident', err);
     }
   };
 
@@ -277,10 +307,63 @@ const OrganizerDashboard = ({ stadiumData }) => {
           <MapGrid stadiumData={stadiumData} large={true} />
         </div>
 
-        {/* Accessibility Requests Panel */}
-        <div className="xl:col-span-1 flex flex-col">
-          <h2 className="text-xl font-bold text-slate-200 mb-4">Accessibility Requests</h2>
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-xl flex-1 max-h-[800px] overflow-y-auto p-4 space-y-4">
+        {/* Right Column: Incidents and Requests */}
+        <div className="xl:col-span-1 flex flex-col gap-6">
+          
+          {/* Active Incidents Panel */}
+          <div className="flex flex-col flex-1 max-h-[400px]">
+            <h2 className="text-xl font-bold text-slate-200 mb-3 flex items-center gap-2">
+              <div className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]"></div>
+              Active Incidents
+            </h2>
+            <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-xl flex-1 overflow-y-auto p-4 space-y-4">
+              {incidents.filter(i => i.status === 'open').length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-20 text-slate-500">
+                  <p>No active incidents.</p>
+                </div>
+              ) : (
+                incidents.filter(i => i.status === 'open').map(inc => (
+                  <div key={inc.id} className="bg-slate-800 border border-red-500/50 rounded-xl p-4 shadow-lg shadow-red-900/10">
+                    <div className="flex justify-between items-start mb-2">
+                      <span className="px-2 py-1 text-xs font-bold rounded bg-red-900/50 text-red-400 uppercase tracking-wider border border-red-800/50">
+                        {inc.type}
+                      </span>
+                      <span className="text-xs text-slate-400 font-mono">
+                        {new Date(inc.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                    <div className="text-slate-300 text-sm font-medium mb-1">
+                      <span className="text-slate-500 mr-1">Zone:</span> {inc.zone}
+                    </div>
+                    {inc.note && (
+                      <div className="text-slate-300 text-sm mb-3">
+                        <span className="text-slate-500 mr-1">Note:</span> {inc.note}
+                      </div>
+                    )}
+                    {inc.suggestedResponse && (
+                      <div className="mt-3 p-3 bg-indigo-950/50 border border-indigo-500/30 rounded-lg">
+                        <div className="text-xs text-indigo-300 font-bold mb-1 flex items-center gap-1">
+                          <span>✨</span> AI Suggestion
+                        </div>
+                        <p className="text-xs text-indigo-100">{inc.suggestedResponse}</p>
+                      </div>
+                    )}
+                    <button
+                      onClick={() => handleResolveIncident(inc.id)}
+                      className="mt-3 w-full bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold py-2 rounded transition-colors border border-slate-600 cursor-pointer"
+                    >
+                      Mark Resolved
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Accessibility Requests Panel */}
+          <div className="flex flex-col flex-1 max-h-[400px]">
+            <h2 className="text-xl font-bold text-slate-200 mb-3">Accessibility Requests</h2>
+            <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-xl flex-1 overflow-y-auto p-4 space-y-4">
             {requests.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-40 text-slate-500">
                 <p>No requests found.</p>
@@ -324,7 +407,7 @@ const OrganizerDashboard = ({ stadiumData }) => {
             )}
           </div>
         </div>
-
+        </div>
       </div>
     </div>
   );

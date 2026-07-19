@@ -18,6 +18,8 @@ try {
   console.warn("GoogleGenAI initialized without API key, make sure it is added to .env");
 }
 
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-3.1-flash-lite';
+
 // Simulation Data
 const snapshots = [
   { time: '6:00 PM', densities: { 'gate-a': 20, 'gate-b': 25, 'gate-c': 15, 'gate-d': 20, 'sec-100': 10, 'sec-200': 15, 'sec-300': 10, 'sec-400': 12, 'rr-1': 5, 'rr-2': 5, 'med-1': 2, 'fc-1': 10, 'fc-2': 12, 'acc-1': 5, 'acc-2': 5 } },
@@ -57,7 +59,7 @@ app.put('/api/requests/:id/resolve', async (req, res) => {
     const filePath = './data/requests.json';
     const data = await fs.readFile(filePath, 'utf8');
     const requests = JSON.parse(data);
-    
+
     const index = requests.findIndex(r => r.id === req.params.id);
     if (index !== -1) {
       requests[index].status = 'resolved';
@@ -73,7 +75,7 @@ app.put('/api/requests/:id/resolve', async (req, res) => {
 });
 
 app.post('/api/navigation', async (req, res) => {
-  const { from, to, accessibilityNeed } = req.body;
+  const { from, to, accessibilityNeed, language } = req.body;
   if (!from || !to) {
     return res.status(400).json({ error: 'Missing from or to parameters' });
   }
@@ -98,14 +100,17 @@ app.post('/api/navigation', async (req, res) => {
       CRITICAL ACCESSIBILITY REQUIREMENT: 
       The fan has selected the following accessibility need: "${accessibilityNeed}". 
       You MUST avoid stairs, prefer ramps and elevators, and explicitly mention any accessible restrooms or accessible entrances along the way.
-      Ensure the route is safe and accommodating for their specific need.
       `;
+    }
+
+    if (language && language !== 'English') {
+      prompt += `\nPlease generate the response in the following language: ${language}.`;
     }
 
     prompt += `\nFormat the output cleanly. Just text, no markdown wrappers like \`\`\``;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: GEMINI_MODEL,
       contents: prompt,
     });
 
@@ -117,8 +122,8 @@ app.post('/api/navigation', async (req, res) => {
 });
 
 app.post('/api/request-help', async (req, res) => {
-  const { from, to, need } = req.body;
-  
+  const { from, to, need, language } = req.body;
+
   if (!from || !need) {
     return res.status(400).json({ error: 'Missing required parameters' });
   }
@@ -146,7 +151,22 @@ app.post('/api/request-help', async (req, res) => {
     requests.push(newRequest);
     await fs.writeFile(filePath, JSON.stringify(requests, null, 2));
 
-    res.json({ message: 'Staff notified, ETA 3 minutes.', request: newRequest });
+    let confirmationMessage = 'Staff notified, ETA 3 minutes.';
+    if (ai && language && language !== 'English') {
+      try {
+        const response = await ai.models.generateContent({
+          model: GEMINI_MODEL,
+          contents: `Translate the following confirmation message to ${language}: "Staff notified, ETA 3 minutes." Just return the translated text.`,
+        });
+        if (response && response.text) {
+          confirmationMessage = response.text.trim();
+        }
+      } catch (e) {
+        console.error('Translation failed', e);
+      }
+    }
+
+    res.json({ message: confirmationMessage, request: newRequest });
   } catch (error) {
     console.error('Error saving request:', error);
     res.status(500).json({ error: 'Failed to save staff request' });
@@ -161,7 +181,7 @@ app.post('/api/requests/:id/subissue', async (req, res) => {
     const filePath = './data/requests.json';
     const data = await fs.readFile(filePath, 'utf8');
     const requests = JSON.parse(data);
-    
+
     const index = requests.findIndex(r => r.id === req.params.id);
     if (index !== -1) {
       if (!requests[index].subIssues) requests[index].subIssues = [];
@@ -214,7 +234,7 @@ app.post('/api/ai-insights', async (req, res) => {
 
     console.log(`[${new Date().toISOString()}] Calling Gemini API for insights...`);
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: GEMINI_MODEL,
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -222,7 +242,7 @@ app.post('/api/ai-insights', async (req, res) => {
     });
 
     console.log(`[${new Date().toISOString()}] Raw Gemini API response text:`, response.text);
-    
+
     let parsedData;
     try {
       parsedData = JSON.parse(response.text);
@@ -234,7 +254,110 @@ app.post('/api/ai-insights', async (req, res) => {
     res.json(parsedData);
   } catch (error) {
     console.error(`[${new Date().toISOString()}] Error generating AI insights:`, error);
+
+    // Check for rate limit error (429)
+    if (error.status === 429 || (error.message && (error.message.includes('429') || error.message.includes('rate') || error.message.includes('Too Many Requests') || error.message.includes('quota')))) {
+      return res.status(429).json({ error: 'AI insights temporarily unavailable, please try again in a moment' });
+    }
+
     res.status(500).json({ error: 'Failed to generate AI insights: ' + (error.message || 'Unknown error') });
+  }
+});
+
+app.get('/api/incidents', async (req, res) => {
+  try {
+    const filePath = './data/incidents.json';
+    try {
+      const data = await fs.readFile(filePath, 'utf8');
+      res.json(JSON.parse(data));
+    } catch (e) {
+      res.json([]);
+    }
+  } catch (error) {
+    console.error('Error fetching incidents:', error);
+    res.status(500).json({ error: 'Failed to fetch incidents' });
+  }
+});
+
+app.post('/api/incidents', async (req, res) => {
+  console.log(`[${new Date().toISOString()}] POST /api/incidents received with body:`, req.body);
+  const { zone, type, note } = req.body;
+  if (!zone || !type) {
+    console.warn(`[${new Date().toISOString()}] POST /api/incidents missing parameters`);
+    return res.status(400).json({ error: 'Missing required parameters' });
+  }
+
+  try {
+    const filePath = './data/incidents.json';
+    let incidents = [];
+    try {
+      const data = await fs.readFile(filePath, 'utf8');
+      incidents = JSON.parse(data);
+    } catch (e) {
+      console.log(`[${new Date().toISOString()}] Could not read incidents.json, starting fresh.`, e.message);
+    }
+
+    const newIncident = {
+      id: Date.now().toString(),
+      timestamp: new Date().toISOString(),
+      zone,
+      type,
+      note: note || '',
+      severity: (type === 'Medical' || type === 'Security') ? 'high' : 'medium',
+      status: 'open',
+      suggestedResponse: 'Please dispatch nearest available staff to investigate immediately.'
+    };
+
+    // Try to get AI response
+    if (ai) {
+      try {
+        const currentDensities = snapshots[currentSnapshotIndex].densities;
+        const prompt = `An incident of type "${type}" has been reported in zone "${zone}". Additional note: "${note}". 
+        Current stadium zone densities: ${JSON.stringify(currentDensities)}.
+        Generate a short suggested response (2-3 sentences) for the stadium staff to address this incident effectively.`;
+
+        console.log(`[${new Date().toISOString()}] Generating AI response for incident...`);
+        const response = await ai.models.generateContent({
+          model: GEMINI_MODEL,
+          contents: prompt,
+        });
+        if (response && response.text) {
+          newIncident.suggestedResponse = response.text;
+          console.log(`[${new Date().toISOString()}] AI response generated successfully.`);
+        }
+      } catch (aiError) {
+        console.error(`[${new Date().toISOString()}] Error generating AI response for incident:`, aiError);
+      }
+    }
+
+    incidents.push(newIncident);
+    await fs.writeFile(filePath, JSON.stringify(incidents, null, 2));
+
+    console.log(`[${new Date().toISOString()}] Incident saved successfully.`);
+    res.json({ message: 'Incident reported successfully.', incident: newIncident });
+  } catch (error) {
+    console.error(`[${new Date().toISOString()}] FATAL Error saving incident:`, error);
+    res.status(500).json({ error: 'Failed to save incident' });
+  }
+});
+
+app.put('/api/incidents/:id/resolve', async (req, res) => {
+  try {
+    const filePath = './data/incidents.json';
+    const data = await fs.readFile(filePath, 'utf8');
+    const incidents = JSON.parse(data);
+
+    const index = incidents.findIndex(i => i.id === req.params.id);
+    if (index !== -1) {
+      incidents[index].status = 'resolved';
+      await fs.writeFile(filePath, JSON.stringify(incidents, null, 2));
+      res.json(incidents[index]);
+    } else {
+      res.status(404).json({ error: 'Incident not found' });
+    }
+  } catch (error) {
+    console.error('Error resolving incident:', error);
+    res.status(500).json({ error: 'Failed to resolve incident' });
   }
 });
 

@@ -1,7 +1,126 @@
 import { useState, useEffect } from 'react';
 import MapGrid, { locations } from './MapGrid';
 
-const SubIssueForm = ({ requestId, setAllRequests }) => {
+const UI_TRANSLATIONS = {
+  English: {
+    title: 'Smart Stadium Map',
+    subtitle: 'Select any section to view details, or get navigation directions below.',
+    fanNav: 'Fan Navigation',
+    assistance: 'Assistance:',
+    iAmAt: 'I am at',
+    iWantToGoTo: 'I want to go to',
+    selectStart: 'Select starting point...',
+    selectDest: 'Select destination...',
+    getDirections: 'Get Directions',
+    requestHelp: 'Request Staff Help',
+    reportIncident: 'Report Incident',
+    calculating: 'Calculating...',
+    requesting: 'Requesting...',
+    myRequests: 'My Requests',
+    noRequests: 'No requests submitted in this session.',
+    raiseSubIssue: 'Raise Sub-issue',
+    submit: 'Submit',
+    cancel: 'Cancel',
+    help: 'Help',
+    from: 'From',
+    to: 'To'
+  },
+  Spanish: {
+    title: 'Mapa Inteligente del Estadio',
+    subtitle: 'Seleccione cualquier sección para ver detalles, o busque direcciones abajo.',
+    fanNav: 'Navegación para Fans',
+    assistance: 'Asistencia:',
+    iAmAt: 'Estoy en',
+    iWantToGoTo: 'Quiero ir a',
+    selectStart: 'Seleccione punto de partida...',
+    selectDest: 'Seleccione destino...',
+    getDirections: 'Obtener Direcciones',
+    requestHelp: 'Solicitar Ayuda',
+    reportIncident: 'Reportar Incidente',
+    calculating: 'Calculando...',
+    requesting: 'Solicitando...',
+    myRequests: 'Mis Solicitudes',
+    noRequests: 'No hay solicitudes en esta sesión.',
+    raiseSubIssue: 'Añadir Detalle',
+    submit: 'Enviar',
+    cancel: 'Cancelar',
+    help: 'Ayuda',
+    from: 'De',
+    to: 'A'
+  },
+  French: {
+    title: 'Carte Intelligente du Stade',
+    subtitle: 'Sélectionnez une section pour voir les détails, ou obtenez des directions ci-dessous.',
+    fanNav: 'Navigation des Fans',
+    assistance: 'Assistance:',
+    iAmAt: 'Je suis à',
+    iWantToGoTo: 'Je veux aller à',
+    selectStart: 'Sélectionnez le point de départ...',
+    selectDest: 'Sélectionnez la destination...',
+    getDirections: 'Obtenir des Directions',
+    requestHelp: 'Demander de l\'Aide',
+    reportIncident: 'Signaler un Incident',
+    calculating: 'Calcul en cours...',
+    requesting: 'Demande en cours...',
+    myRequests: 'Mes Demandes',
+    noRequests: 'Aucune demande soumise lors de cette session.',
+    raiseSubIssue: 'Ajouter un Détail',
+    submit: 'Soumettre',
+    cancel: 'Annuler',
+    help: 'Aide',
+    from: 'De',
+    to: 'À'
+  },
+  Portuguese: {
+    title: 'Mapa Inteligente do Estádio',
+    subtitle: 'Selecione qualquer seção para ver detalhes, ou obtenha direções abaixo.',
+    fanNav: 'Navegação de Fãs',
+    assistance: 'Assistência:',
+    iAmAt: 'Eu estou em',
+    iWantToGoTo: 'Eu quero ir para',
+    selectStart: 'Selecione o ponto de partida...',
+    selectDest: 'Selecione o destino...',
+    getDirections: 'Obter Direções',
+    requestHelp: 'Solicitar Ajuda',
+    reportIncident: 'Relatar Incidente',
+    calculating: 'Calculando...',
+    requesting: 'Solicitando...',
+    myRequests: 'Minhas Solicitações',
+    noRequests: 'Nenhuma solicitação enviada nesta sessão.',
+    raiseSubIssue: 'Adicionar Detalhe',
+    submit: 'Enviar',
+    cancel: 'Cancelar',
+    help: 'Ajuda',
+    from: 'De',
+    to: 'Para'
+  },
+  Arabic: {
+    title: 'خريطة الملعب الذكية',
+    subtitle: 'حدد أي قسم لعرض التفاصيل، أو احصل على اتجاهات التنقل أدناه.',
+    fanNav: 'ملاحة المشجعين',
+    assistance: 'مساعدة:',
+    iAmAt: 'أنا في',
+    iWantToGoTo: 'أريد الذهاب إلى',
+    selectStart: 'حدد نقطة الانطلاق...',
+    selectDest: 'حدد الوجهة...',
+    getDirections: 'احصل على الاتجاهات',
+    requestHelp: 'طلب مساعدة الموظفين',
+    reportIncident: 'الإبلاغ عن حادث',
+    calculating: 'جاري الحساب...',
+    requesting: 'جاري الطلب...',
+    myRequests: 'طلباتي',
+    noRequests: 'لم يتم تقديم أي طلبات في هذه الجلسة.',
+    raiseSubIssue: 'إضافة تفصيل',
+    submit: 'إرسال',
+    cancel: 'إلغاء',
+    help: 'مساعدة',
+    from: 'من',
+    to: 'إلى'
+  }
+};
+
+const SubIssueForm = ({ requestId, setAllRequests, language }) => {
+  const t = UI_TRANSLATIONS[language] || UI_TRANSLATIONS.English;
   const [isOpen, setIsOpen] = useState(false);
   const [note, setNote] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -35,7 +154,7 @@ const SubIssueForm = ({ requestId, setAllRequests }) => {
         onClick={() => setIsOpen(true)}
         className="text-xs font-bold text-cyan-400 hover:text-cyan-300 underline cursor-pointer"
       >
-        Raise Sub-issue
+        {t.raiseSubIssue}
       </button>
     );
   }
@@ -56,7 +175,7 @@ const SubIssueForm = ({ requestId, setAllRequests }) => {
           disabled={isSubmitting}
           className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-1 px-3 rounded transition-colors disabled:opacity-50 cursor-pointer"
         >
-          Submit
+          {t.submit}
         </button>
         <button 
           type="button" 
@@ -64,7 +183,7 @@ const SubIssueForm = ({ requestId, setAllRequests }) => {
           disabled={isSubmitting}
           className="text-slate-400 hover:text-slate-300 text-xs font-bold cursor-pointer"
         >
-          Cancel
+          {t.cancel}
         </button>
       </div>
     </form>
@@ -81,9 +200,18 @@ const FanView = ({ stadiumData }) => {
   const [helpStatus, setHelpStatus] = useState('');
   const [isRequestingHelp, setIsRequestingHelp] = useState(false);
   
+  const [isIncidentModalOpen, setIsIncidentModalOpen] = useState(false);
+  const [incidentType, setIncidentType] = useState('Medical');
+  const [incidentZone, setIncidentZone] = useState('');
+  const [incidentNote, setIncidentNote] = useState('');
+  const [isSubmittingIncident, setIsSubmittingIncident] = useState(false);
+
   const [myRequestIds, setMyRequestIds] = useState([]);
   const [allRequests, setAllRequests] = useState([]);
   const [isMyRequestsExpanded, setIsMyRequestsExpanded] = useState(true);
+  
+  const [language, setLanguage] = useState('English');
+  const t = UI_TRANSLATIONS[language] || UI_TRANSLATIONS.English;
 
   useEffect(() => {
     const fetchRequests = async () => {
@@ -113,7 +241,7 @@ const FanView = ({ stadiumData }) => {
       const response = await fetch('http://localhost:3000/api/navigation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ from: fromZone, to: toZone, accessibilityNeed })
+        body: JSON.stringify({ from: fromZone, to: toZone, accessibilityNeed, language })
       });
       const data = await response.json();
       if (data.directions) {
@@ -141,7 +269,7 @@ const FanView = ({ stadiumData }) => {
       const response = await fetch('http://localhost:3000/api/request-help', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ from: fromZone, to: toZone, need: accessibilityNeed })
+        body: JSON.stringify({ from: fromZone, to: toZone, need: accessibilityNeed, language })
       });
       const data = await response.json();
       if (data.message) {
@@ -160,11 +288,58 @@ const FanView = ({ stadiumData }) => {
     }
   };
 
+  const handleReportIncident = async (e) => {
+    e.preventDefault();
+    if (!incidentZone || !incidentType) {
+      setHelpStatus('Please provide a zone and incident type.');
+      return;
+    }
+    
+    setIsSubmittingIncident(true);
+    setHelpStatus('');
+
+    try {
+      const response = await fetch('http://localhost:3000/api/incidents', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ zone: incidentZone, type: incidentType, note: incidentNote, language })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setHelpStatus('Incident reported successfully. Staff have been notified.');
+        setIsIncidentModalOpen(false);
+        setIncidentNote('');
+      } else {
+        setHelpStatus(data.error || 'Failed to report incident.');
+      }
+    } catch (err) {
+      setHelpStatus('Failed to connect to the server.');
+    } finally {
+      setIsSubmittingIncident(false);
+    }
+  };
+
+  const openIncidentModal = () => {
+    setIncidentZone(fromZone || locations[0].name);
+    setIsIncidentModalOpen(true);
+  };
+
   return (
     <div className="w-full flex flex-col items-center py-8 px-4">
       <div className="w-full max-w-5xl mb-8 flex flex-col items-center text-center">
+        <div className="w-full flex justify-end mb-2">
+          <select 
+            value={language} 
+            onChange={(e) => setLanguage(e.target.value)}
+            className="bg-slate-800/80 border border-slate-600 text-slate-200 text-sm rounded-lg px-3 py-1.5 outline-none focus:ring-2 focus:ring-cyan-500 backdrop-blur-sm shadow-lg"
+          >
+            {Object.keys(UI_TRANSLATIONS).map(lang => (
+              <option key={lang} value={lang}>{lang}</option>
+            ))}
+          </select>
+        </div>
         <h1 className="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600">
-          Smart Stadium Map
+          {t.title}
         </h1>
         
         {/* Simulated Time Display */}
@@ -176,7 +351,7 @@ const FanView = ({ stadiumData }) => {
         </div>
 
         <p className="text-slate-400 text-lg">
-          Select any section to view details, or get navigation directions below.
+          {t.subtitle}
         </p>
       </div>
       
@@ -185,11 +360,11 @@ const FanView = ({ stadiumData }) => {
         {/* Fan Navigation Card */}
         <div className="flex-1 w-full bg-slate-800/80 p-6 rounded-2xl shadow-xl border border-slate-700">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-            <h2 className="text-2xl font-bold text-cyan-400">Fan Navigation</h2>
+            <h2 className="text-2xl font-bold text-cyan-400">{t.fanNav}</h2>
             
             {/* Accessibility Toggle */}
             <div className="mt-4 md:mt-0 flex items-center space-x-3 bg-slate-900/50 p-2 rounded-xl border border-slate-700">
-              <span className="text-sm text-slate-400 font-medium ml-2">Assistance:</span>
+              <span className="text-sm text-slate-400 font-medium ml-2">{t.assistance}</span>
               <div className="flex space-x-1">
                 {accessibilityOptions.map(opt => (
                   <button
@@ -210,25 +385,25 @@ const FanView = ({ stadiumData }) => {
 
           <div className="flex flex-col md:flex-row gap-4 items-end">
             <div className="flex-1 w-full">
-              <label className="block text-sm font-medium text-slate-400 mb-2">I am at</label>
+              <label className="block text-sm font-medium text-slate-400 mb-2">{t.iAmAt}</label>
               <select 
                 className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg p-3 outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
                 value={fromZone}
                 onChange={(e) => setFromZone(e.target.value)}
               >
-                <option value="">Select starting point...</option>
+                <option value="">{t.selectStart}</option>
                 {locations.map(loc => <option key={`from-${loc.id}`} value={loc.name}>{loc.name}</option>)}
               </select>
             </div>
             
             <div className="flex-1 w-full">
-              <label className="block text-sm font-medium text-slate-400 mb-2">I want to go to</label>
+              <label className="block text-sm font-medium text-slate-400 mb-2">{t.iWantToGoTo}</label>
               <select 
                 className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg p-3 outline-none focus:ring-2 focus:ring-cyan-500 transition-all"
                 value={toZone}
                 onChange={(e) => setToZone(e.target.value)}
               >
-                <option value="">Select destination...</option>
+                <option value="">{t.selectDest}</option>
                 {locations.map(loc => <option key={`to-${loc.id}`} value={loc.name}>{loc.name}</option>)}
               </select>
             </div>
@@ -244,7 +419,14 @@ const FanView = ({ stadiumData }) => {
                   }
                 `}
               >
-                {isLoading ? 'Calculating...' : 'Get Directions'}
+                {isLoading ? t.calculating : t.getDirections}
+              </button>
+              {/* Report Incident Button */}
+              <button
+                onClick={openIncidentModal}
+                className="px-6 py-3 rounded-lg font-bold text-white transition-all shadow-lg w-full md:w-auto bg-red-600 hover:bg-red-500 hover:shadow-red-500/25 border border-red-500 hover:-translate-y-0.5"
+              >
+                {t.reportIncident}
               </button>
               
               {/* Request Staff Help Button */}
@@ -259,7 +441,7 @@ const FanView = ({ stadiumData }) => {
                     }
                   `}
                 >
-                  {isRequestingHelp ? 'Requesting...' : 'Request Staff Help'}
+                  {isRequestingHelp ? t.requesting : t.requestHelp}
                 </button>
               )}
             </div>
@@ -290,7 +472,7 @@ const FanView = ({ stadiumData }) => {
           {/* Sidebar Header with Toggle */}
           <div className="flex justify-between items-center p-4 border-b border-slate-700 bg-slate-900/50">
             <div className="flex items-center gap-2">
-              <span className="font-bold text-cyan-400">My Requests</span>
+              <span className="font-bold text-cyan-400">{t.myRequests}</span>
               {myRequestIds.length > 0 && (
                 <span className="bg-cyan-500/25 text-cyan-300 text-xs px-2 py-0.5 rounded-full font-bold border border-cyan-500/30">
                   {myRequestIds.length}
@@ -310,7 +492,7 @@ const FanView = ({ stadiumData }) => {
           {isMyRequestsExpanded && (
             <div className="p-4 space-y-4 max-h-[500px] overflow-y-auto bg-slate-900/20">
               {myRequestIds.length === 0 ? (
-                <p className="text-sm text-slate-500 text-center py-4">No requests submitted in this session.</p>
+                <p className="text-sm text-slate-500 text-center py-4">{t.noRequests}</p>
               ) : (
                 myRequestIds.map(id => {
                   const req = allRequests.find(r => r.id === id);
@@ -318,14 +500,14 @@ const FanView = ({ stadiumData }) => {
                   return (
                     <div key={id} className="bg-slate-900/40 p-4 rounded-xl border border-slate-700 hover:border-slate-600 transition-colors shadow-sm">
                       <div className="flex justify-between items-start mb-2">
-                        <span className="font-bold text-slate-200 text-sm">Help: {req.need}</span>
+                        <span className="font-bold text-slate-200 text-sm">{t.help}: {req.need}</span>
                         <span className={`px-2 py-0.5 text-[10px] font-bold rounded uppercase tracking-wider ${req.status === 'pending' ? 'bg-amber-900/50 text-amber-400 border border-amber-700/30' : 'bg-emerald-900/50 text-emerald-400 border border-emerald-700/30'}`}>
                           {req.status}
                         </span>
                       </div>
                       <div className="text-xs text-slate-400 mb-2 leading-relaxed">
-                        <div><span className="text-slate-500 font-medium">From:</span> {req.from}</div>
-                        {req.to && req.to !== 'Not specified' && <div><span className="text-slate-500 font-medium">To:</span> {req.to}</div>}
+                        <div><span className="text-slate-500 font-medium">{t.from}:</span> {req.from}</div>
+                        {req.to && req.to !== 'Not specified' && <div><span className="text-slate-500 font-medium">{t.to}:</span> {req.to}</div>}
                       </div>
                       
                       {req.subIssues && req.subIssues.length > 0 && (
@@ -341,7 +523,7 @@ const FanView = ({ stadiumData }) => {
                       
                       {req.status === 'pending' && (
                         <div className="mt-2 pt-2 border-t border-slate-700/50">
-                          <SubIssueForm requestId={req.id} setAllRequests={setAllRequests} />
+                          <SubIssueForm requestId={req.id} setAllRequests={setAllRequests} language={language} />
                         </div>
                       )}
                     </div>
@@ -372,6 +554,72 @@ const FanView = ({ stadiumData }) => {
           </div>
         )}
       </div>
+      {/* Incident Modal */}
+      {isIncidentModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 shadow-2xl w-full max-w-md relative">
+            <h2 className="text-2xl font-bold text-red-400 mb-4 flex items-center gap-2">
+              <span>⚠️</span> Report Incident
+            </h2>
+            <form onSubmit={handleReportIncident} className="flex flex-col gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-400 mb-1">Incident Type</label>
+                <select
+                  value={incidentType}
+                  onChange={(e) => setIncidentType(e.target.value)}
+                  className="w-full bg-slate-800 border border-slate-700 text-white rounded p-2.5 outline-none focus:border-red-500"
+                >
+                  <option value="Medical">Medical</option>
+                  <option value="Security">Security</option>
+                  <option value="Lost Person">Lost Person</option>
+                  <option value="Overcrowding">Overcrowding</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-slate-400 mb-1">Location / Zone</label>
+                <select
+                  value={incidentZone}
+                  onChange={(e) => setIncidentZone(e.target.value)}
+                  className="w-full bg-slate-800 border border-slate-700 text-white rounded p-2.5 outline-none focus:border-red-500"
+                >
+                  <option value="">Select location...</option>
+                  {locations.map(loc => <option key={`inc-${loc.id}`} value={loc.name}>{loc.name}</option>)}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-400 mb-1">Additional Note (Optional)</label>
+                <input
+                  type="text"
+                  value={incidentNote}
+                  onChange={(e) => setIncidentNote(e.target.value)}
+                  placeholder="e.g., Someone fell, need help"
+                  className="w-full bg-slate-800 border border-slate-700 text-white rounded p-2.5 outline-none focus:border-red-500"
+                />
+              </div>
+
+              <div className="flex gap-3 mt-4">
+                <button
+                  type="submit"
+                  disabled={isSubmittingIncident}
+                  className="flex-1 bg-red-600 hover:bg-red-500 disabled:bg-slate-700 text-white font-bold py-2.5 rounded transition-all cursor-pointer"
+                >
+                  {isSubmittingIncident ? 'Submitting...' : 'Submit Report'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsIncidentModalOpen(false)}
+                  disabled={isSubmittingIncident}
+                  className="px-4 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white font-bold rounded transition-all cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
