@@ -85,6 +85,20 @@ app.put('/api/requests/:id/resolve', async (req, res) => {
   }
 });
 
+/**
+ * POST /api/navigation
+ * Generates turn-by-turn walking directions for a fan from one stadium zone to another.
+ * 
+ * Inputs:
+ *  - from (string): Starting zone ID
+ *  - to (string): Destination zone ID
+ *  - accessibilityNeed (enum): Optional accessibility requirements (e.g. Wheelchair)
+ *  - language (enum): Target language for the output
+ * 
+ * Logic:
+ * Uses the Gemini AI model to compute the best path using the static stadium graph 
+ * (from stadium.json) and formats the output into friendly, translated instructions.
+ */
 app.post('/api/navigation', async (req, res) => {
   let { from, to, accessibilityNeed, language } = req.body;
   if (!from || !to) {
@@ -137,6 +151,20 @@ app.post('/api/navigation', async (req, res) => {
   }
 });
 
+/**
+ * POST /api/request-help
+ * Submits a new staff assistance request from a fan.
+ * 
+ * Inputs:
+ *  - from (string): Location of the fan
+ *  - to (string): Optional destination location
+ *  - need (enum): The type of assistance requested
+ *  - language (enum): Fan's preferred language for the confirmation message
+ * 
+ * Logic:
+ * Sanitizes input, saves the request to the persistent JSON datastore, 
+ * and uses the AI to dynamically translate the success confirmation.
+ */
 app.post('/api/request-help', async (req, res) => {
   let { from, to, need, language } = req.body;
 
@@ -183,7 +211,7 @@ app.post('/api/request-help', async (req, res) => {
           confirmationMessage = response.text.trim();
         }
       } catch (e) {
-        console.error('Translation failed', e);
+        // Translation failed, falls back to default English message
       }
     }
 
@@ -194,6 +222,14 @@ app.post('/api/request-help', async (req, res) => {
   }
 });
 
+/**
+ * POST /api/requests/:id/subissue
+ * Adds a follow-up note (sub-issue) to an existing staff assistance request.
+ * 
+ * Inputs:
+ *  - id (url param): The unique ID of the request
+ *  - note (string): The follow-up message provided by the fan
+ */
 app.post('/api/requests/:id/subissue', async (req, res) => {
   let { note } = req.body;
   if (!note) return res.status(400).json({ error: 'Missing note parameter' });
@@ -223,6 +259,19 @@ app.post('/api/requests/:id/subissue', async (req, res) => {
   }
 });
 
+/**
+ * POST /api/ai-insights
+ * Generates proactive operational insights for stadium organizers.
+ * 
+ * Inputs:
+ *  - stadiumData (object): Current simulated crowd density across all zones
+ *  - requests (array): List of active staff assistance requests
+ * 
+ * Logic:
+ * Formulates a complex prompt injecting the live operational state of the stadium.
+ * Instructs the AI model to return a structured JSON response identifying risk zones, 
+ * recommending staff reallocation, and prioritizing active requests.
+ */
 app.post('/api/ai-insights', async (req, res) => {
   const { stadiumData, requests } = req.body;
   if (!stadiumData || !requests) {
@@ -256,7 +305,6 @@ app.post('/api/ai-insights', async (req, res) => {
       }
     `;
 
-    console.log(`[${new Date().toISOString()}] Calling Gemini API for insights...`);
     const response = await ai.models.generateContent({
       model: GEMINI_MODEL,
       contents: prompt,
@@ -265,13 +313,10 @@ app.post('/api/ai-insights', async (req, res) => {
       }
     });
 
-    console.log(`[${new Date().toISOString()}] Raw Gemini API response text:`, response.text);
-
     let parsedData;
     try {
       parsedData = JSON.parse(response.text);
     } catch (parseError) {
-      console.error(`[${new Date().toISOString()}] Failed to parse Gemini response as JSON. Raw text:`, response.text);
       return res.status(500).json({ error: 'Received invalid JSON format from AI.' });
     }
 
@@ -303,8 +348,20 @@ app.get('/api/incidents', async (req, res) => {
   }
 });
 
+/**
+ * POST /api/incidents
+ * Reports a new incident (e.g. Medical, Security) from the Fan App.
+ * 
+ * Inputs:
+ *  - zone (string): The zone where the incident occurred
+ *  - type (enum): The type of incident (Medical, Security, etc.)
+ *  - note (string): Optional additional details
+ * 
+ * Logic:
+ * Sanitizes input and saves the incident. Uses the AI model to generate a short, 
+ * context-aware suggested response based on the current crowd density in that zone.
+ */
 app.post('/api/incidents', async (req, res) => {
-  console.log(`[${new Date().toISOString()}] POST /api/incidents received with body:`, req.body);
   let { zone, type, note } = req.body;
   if (!zone || !type) {
     console.warn(`[${new Date().toISOString()}] POST /api/incidents missing parameters`);
@@ -322,7 +379,7 @@ app.post('/api/incidents', async (req, res) => {
       const data = await fs.readFile(filePath, 'utf8');
       incidents = JSON.parse(data);
     } catch (e) {
-      console.log(`[${new Date().toISOString()}] Could not read incidents.json, starting fresh.`, e.message);
+      // Could not read incidents.json, starting fresh
     }
 
     const newIncident = {
@@ -344,14 +401,12 @@ app.post('/api/incidents', async (req, res) => {
         Current stadium zone densities: ${JSON.stringify(currentDensities)}.
         Generate a short suggested response (2-3 sentences) for the stadium staff to address this incident effectively.`;
 
-        console.log(`[${new Date().toISOString()}] Generating AI response for incident...`);
         const response = await ai.models.generateContent({
           model: GEMINI_MODEL,
           contents: prompt,
         });
         if (response && response.text) {
           newIncident.suggestedResponse = response.text;
-          console.log(`[${new Date().toISOString()}] AI response generated successfully.`);
         }
       } catch (aiError) {
         console.error(`[${new Date().toISOString()}] Error generating AI response for incident:`, aiError);
@@ -361,7 +416,6 @@ app.post('/api/incidents', async (req, res) => {
     incidents.push(newIncident);
     await fs.writeFile(filePath, JSON.stringify(incidents, null, 2));
 
-    console.log(`[${new Date().toISOString()}] Incident saved successfully.`);
     res.json({ message: 'Incident reported successfully.', incident: newIncident });
   } catch (error) {
     console.error(`[${new Date().toISOString()}] FATAL Error saving incident:`, error);
